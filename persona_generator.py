@@ -24,7 +24,9 @@ def generate_personas(G: nx.DiGraph, data: dict, num_personas: int = 10) -> list
     id_to_name = {e["id"]: e["name"] for e in data["entities"]}
 
     for source, target, attrs in G.edges(data=True):
-        edges.append(f"{id_to_name[source]} --[{attrs['relation']}]--> {id_to_name[target]}")
+        src_name = id_to_name.get(source, source)
+        tgt_name = id_to_name.get(target, target)
+        edges.append(f"{src_name} --[{attrs['relation']}]--> {tgt_name}")
 
     graph_summary = f"""
 Entities involved: {", ".join(entities)}
@@ -63,12 +65,17 @@ Make each persona distinctly different. Use realistic names.
 """
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.8,
     )
 
     raw = response.choices[0].message.content.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    raw = raw.strip()
     return json.loads(raw)["personas"]
 
 

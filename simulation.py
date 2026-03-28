@@ -49,18 +49,35 @@ Then update your stance if it changed.
 Respond ONLY with valid JSON:
 {{
   "message": "your reaction here",
-  "updated_stance": "bullish/bearish/neutral/uncertain",
+  "updated_stance": "MUST be exactly one of: bullish, bearish, neutral, uncertain",
   "influenced_by": "name of who influenced you or null"
 }}
 """
             response = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="meta-llama/llama-4-scout-17b-16e-instruct",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.9,
             )
 
             raw = response.choices[0].message.content.strip()
+            if raw.startswith("```"):
+                raw = raw.split("```")[1]
+                if raw.startswith("json"):
+                    raw = raw[4:]
+            raw = raw.strip()
             result = json.loads(raw)
+
+            # Normalize stance to valid values
+            valid_stances = ["bullish", "bearish", "neutral", "uncertain"]
+            stance = result.get("updated_stance", "neutral").lower()
+            if stance not in valid_stances:
+                if "bullish" in stance:
+                    stance = "bullish"
+                elif "bearish" in stance:
+                    stance = "bearish"
+                else:
+                    stance = "neutral"
+            result["updated_stance"] = stance
 
             sentiment_tracker[persona["id"]] = result["updated_stance"]
 
@@ -95,7 +112,16 @@ def calculate_sentiment(messages_log: list) -> dict:
             counts[stance] += 1
 
     total = len(final_messages)
-    percentages = {k: round((v / total) * 100) for k, v in counts.items()}
+    percentages = {}
+    remaining = 100
+    items = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+    for i, (k, v) in enumerate(items):
+        if i == len(items) - 1:
+            percentages[k] = remaining
+        else:
+            pct = round((v / total) * 100)
+            percentages[k] = pct
+            remaining -= pct
 
     dominant = max(counts, key=counts.get)
 

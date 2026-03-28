@@ -30,12 +30,17 @@ Entity types can be: organization, person, market_instrument, economic_concept, 
 Keep it to the most important 5-8 entities and relationships only.
 """
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.1,
     )
 
     raw = response.choices[0].message.content.strip()
+    if raw.startswith("```"):
+        raw = raw.split("```")[1]
+        if raw.startswith("json"):
+            raw = raw[4:]
+    raw = raw.strip()
     return json.loads(raw)
 
 
