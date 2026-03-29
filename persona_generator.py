@@ -17,8 +17,36 @@ PERSONA_TYPES = [
     "day_trader",
 ]
 
+BEARISH_WORDS = [
+    "fall", "falls", "falling", "drop", "drops", "dropping", "decline", "declines",
+    "correction", "slide", "slides", "sliding", "down", "lower", "lose", "losses",
+    "recession", "fears", "concern", "concerns", "risk", "crash", "selloff",
+    "sell-off", "plunge", "plunges", "tumble", "tumbles", "slump", "weakness",
+    "bearish", "negative", "worries", "uncertainty", "volatile", "volatility"
+]
 
-def generate_personas(G: nx.DiGraph, data: dict, num_personas: int = 10) -> list:
+BULLISH_WORDS = [
+    "rise", "rises", "rising", "gain", "gains", "surge", "surges", "rally",
+    "rallies", "up", "higher", "growth", "beat", "beats", "strong", "strength",
+    "bullish", "positive", "optimism", "recovery", "rebound", "boom", "soar",
+    "soars", "jump", "jumps", "record", "high", "exceed", "exceeds"
+]
+
+
+def detect_news_sentiment(headline: str) -> str:
+    headline_lower = headline.lower()
+    bearish_count = sum(1 for word in BEARISH_WORDS if word in headline_lower)
+    bullish_count = sum(1 for word in BULLISH_WORDS if word in headline_lower)
+
+    if bearish_count > bullish_count:
+        return "NEGATIVE/BEARISH"
+    elif bullish_count > bearish_count:
+        return "POSITIVE/BULLISH"
+    else:
+        return "MIXED/NEUTRAL"
+
+
+def generate_personas(G: nx.DiGraph, data: dict, num_personas: int = 10, headline: str = "") -> list:
     entities = [e["name"] for e in data["entities"]]
     edges = []
     id_to_name = {e["id"]: e["name"] for e in data["entities"]}
@@ -33,11 +61,24 @@ Entities involved: {", ".join(entities)}
 Relationships: {chr(10).join(edges)}
 """
 
+    news_sentiment = detect_news_sentiment(headline) if headline else "MIXED/NEUTRAL"
+
+    if news_sentiment == "NEGATIVE/BEARISH":
+        stance_instruction = f"The market event sentiment is: {news_sentiment}. At least 3 out of {num_personas} personas must have an initial_stance of 'bearish'. Only 1 persona may be bullish as a contrarian. The rest should be neutral or uncertain."
+    elif news_sentiment == "POSITIVE/BULLISH":
+        stance_instruction = f"The market event sentiment is: {news_sentiment}. At least 3 out of {num_personas} personas must have an initial_stance of 'bullish'. Only 1 persona may be bearish as a contrarian. The rest should be neutral or uncertain."
+    else:
+        stance_instruction = f"The market event sentiment is: {news_sentiment}. Mix stances realistically -- some bullish, some bearish, some neutral or uncertain."
+
     prompt = f"""
 You are simulating a financial market. Based on this knowledge graph of a market event, generate {num_personas} unique trader personas who will react to this event.
 
 Knowledge graph:
 {graph_summary}
+
+Headline context: "{headline[:200] if headline else 'Market event'}"
+
+{stance_instruction}
 
 Generate exactly {num_personas} personas. Respond ONLY with valid JSON, nothing else:
 {{
@@ -99,6 +140,7 @@ if __name__ == "__main__":
     data = extract_entities_and_relations(headline)
     G = build_graph(data)
 
+    print(f"Detected sentiment: {detect_news_sentiment(headline)}")
     print(f"Generating trader personas...\n")
-    personas = generate_personas(G, data, num_personas=10)
+    personas = generate_personas(G, data, num_personas=5, headline=headline)
     print_personas(personas)

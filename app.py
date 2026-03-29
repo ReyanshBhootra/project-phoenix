@@ -48,7 +48,7 @@ def run_pipeline_async(run_id: str, ticker: str, num_personas: int, rounds: int)
         simulation_results[run_id]["steps"].append(f"Graph built: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
 
         simulation_results[run_id]["steps"].append(f"Generating {num_personas} trader personas...")
-        personas = generate_personas(G, data, num_personas=num_personas)
+        personas = generate_personas(G, data, num_personas=num_personas, headline=headline)
         simulation_results[run_id]["personas"] = personas
         simulation_results[run_id]["steps"].append("Personas generated")
 

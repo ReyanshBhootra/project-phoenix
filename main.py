@@ -32,7 +32,7 @@ def run_pipeline(ticker: str = "QQQ", num_personas: int = 5, rounds: int = 3):
     print(f"Graph built -- {G.number_of_nodes()} nodes, {G.number_of_edges()} edges\n")
 
     print(f"Step 3: Generating {num_personas} trader personas...")
-    personas = generate_personas(G, data, num_personas=num_personas)
+    personas = generate_personas(G, data, num_personas=num_personas, headline=headline)
     print(f"Personas generated\n")
 
     print(f"Step 4: Running simulation ({rounds} rounds)...")
