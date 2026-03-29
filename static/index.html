@@ -52,7 +52,6 @@
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
   html { scroll-behavior: smooth; }
 
   body {
@@ -64,13 +63,14 @@
     min-height: 100vh;
     transition: background 0.3s ease, color 0.3s ease;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
-  /* HEADER */
+  /* ── HEADER ── */
   header {
     position: fixed;
     top: 0; left: 0; right: 0;
-    z-index: 100;
+    z-index: 200;
     padding: 0 32px;
     height: 56px;
     display: flex;
@@ -95,6 +95,12 @@
     width: 7px; height: 7px;
     border-radius: 50%;
     background: var(--accent);
+    animation: pulse-dot 2.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.85); }
   }
 
   .header-actions { display: flex; align-items: center; gap: 8px; }
@@ -110,7 +116,6 @@
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
-    letter-spacing: 0.01em;
   }
 
   .btn-ghost:hover {
@@ -119,7 +124,7 @@
     background: var(--bg2);
   }
 
-  /* HERO / SEARCH STATE */
+  /* ── HERO ── */
   .hero {
     min-height: 100vh;
     display: flex;
@@ -127,65 +132,59 @@
     align-items: center;
     justify-content: center;
     padding: 56px 24px 80px;
-    transition: all 0.5s ease;
   }
 
-  .hero.hidden {
-    display: none;
-  }
+  .hero.hidden { display: none; }
 
   .hero-eyebrow {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--accent);
-    margin-bottom: 24px;
+    margin-bottom: 28px;
     opacity: 0;
-    animation: fadeUp 0.6s ease 0.1s forwards;
+    animation: fadeUp 0.7s ease 0.1s forwards;
   }
 
   .hero-title {
     font-family: var(--font-display);
-    font-size: clamp(36px, 5vw, 58px);
+    font-size: clamp(38px, 5.5vw, 62px);
     color: var(--text);
     text-align: center;
-    line-height: 1.15;
-    letter-spacing: -1px;
-    max-width: 640px;
-    margin-bottom: 16px;
+    line-height: 1.12;
+    letter-spacing: -1.5px;
+    max-width: 660px;
+    margin-bottom: 18px;
     opacity: 0;
-    animation: fadeUp 0.6s ease 0.2s forwards;
+    animation: fadeUp 0.7s ease 0.2s forwards;
   }
 
-  .hero-title em {
-    font-style: italic;
-    color: var(--accent);
-  }
+  .hero-title em { font-style: italic; color: var(--accent); }
 
   .hero-sub {
     font-size: 16px;
     color: var(--text-2);
     text-align: center;
-    max-width: 440px;
-    line-height: 1.6;
+    max-width: 420px;
+    line-height: 1.65;
     font-weight: 300;
-    margin-bottom: 48px;
+    margin-bottom: 52px;
     opacity: 0;
-    animation: fadeUp 0.6s ease 0.3s forwards;
+    animation: fadeUp 0.7s ease 0.3s forwards;
   }
 
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* SEARCH BOX */
+  /* ── SEARCH BOX ── */
   .search-container {
     width: 100%;
     max-width: 560px;
     opacity: 0;
-    animation: fadeUp 0.6s ease 0.4s forwards;
+    animation: fadeUp 0.7s ease 0.4s forwards;
   }
 
   .search-box {
@@ -194,21 +193,16 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 20px 20px 16px;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.25s, box-shadow 0.25s;
     box-shadow: var(--shadow);
   }
 
   .search-box:focus-within {
-    border-color: var(--border-hover);
+    border-color: rgba(232,132,90,0.4);
     box-shadow: var(--shadow), 0 0 0 3px var(--accent-softer);
   }
 
-  .search-top {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
+  .search-top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
 
   .ticker-field {
     flex: 1;
@@ -242,11 +236,7 @@
     color: var(--text-3);
   }
 
-  .control-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .control-row { display: flex; align-items: center; gap: 10px; }
 
   .control-row input[type=range] {
     flex: 1;
@@ -265,7 +255,7 @@
 
   .run-btn {
     width: 100%;
-    padding: 13px;
+    padding: 14px;
     background: var(--accent);
     border: none;
     border-radius: var(--radius-sm);
@@ -276,11 +266,23 @@
     cursor: pointer;
     transition: all 0.2s ease;
     letter-spacing: 0.02em;
+    position: relative;
+    overflow: hidden;
   }
 
-  .run-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .run-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+  }
+
+  .run-btn:hover::after { transform: translateX(100%); }
+  .run-btn:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,132,90,0.3); }
   .run-btn:active { transform: translateY(0); }
-  .run-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .run-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
   .quick-tickers {
     display: flex;
@@ -288,11 +290,11 @@
     justify-content: center;
     margin-top: 20px;
     opacity: 0;
-    animation: fadeUp 0.6s ease 0.5s forwards;
+    animation: fadeUp 0.7s ease 0.5s forwards;
   }
 
   .quick-chip {
-    padding: 6px 14px;
+    padding: 6px 16px;
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: 20px;
@@ -301,115 +303,233 @@
     color: var(--text-2);
     cursor: pointer;
     transition: all 0.2s;
+    letter-spacing: 0.03em;
   }
 
   .quick-chip:hover {
     border-color: var(--accent);
     color: var(--accent);
     background: var(--accent-softer);
+    transform: translateY(-1px);
   }
 
-  /* RESULTS STATE */
+  /* ── RESULTS ── */
   .results {
     display: none;
     padding-top: 56px;
-    min-height: 100vh;
   }
 
   .results.visible { display: block; }
 
-  .results-header {
-    padding: 24px 32px 0;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: flex-end;
-    gap: 24px;
+  /* ── STICKY TICKER BAR ── */
+  .ticker-bar {
     position: sticky;
     top: 56px;
+    z-index: 100;
     background: var(--bg);
-    z-index: 50;
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    animation: slideDown 0.4s ease forwards;
   }
 
-  .results-ticker {
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .ticker-symbol {
     font-family: var(--font-display);
-    font-size: 28px;
+    font-size: 26px;
     letter-spacing: -0.5px;
-    padding-bottom: 16px;
+    color: var(--text);
+    flex-shrink: 0;
   }
 
-  .results-headline {
+  .ticker-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  .ticker-headline {
     font-size: 13px;
     color: var(--text-2);
     font-weight: 300;
-    padding-bottom: 18px;
-    flex: 1;
     line-height: 1.4;
-    border-left: 2px solid var(--accent);
-    padding-left: 14px;
-    margin-left: 8px;
+    flex: 1;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
   }
+
+  .ticker-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-3);
+    flex-shrink: 0;
+  }
+
+  .status-pulse {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  .status-pulse.done { background: var(--bullish); animation: none; }
 
   .new-search-btn {
-    padding-bottom: 16px;
     background: none;
-    border: none;
+    border: 1px solid var(--border);
     font-family: var(--font-body);
-    font-size: 13px;
-    color: var(--accent);
+    font-size: 12px;
+    color: var(--text-3);
     cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 20px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .new-search-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ── CHART SECTION ── */
+  .chart-section {
+    width: 100%;
+    height: 480px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .chart-section.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .chart-section iframe,
+  .chart-section > div {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* ── SIMULATION SECTION ── */
+  .sim-section {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s;
+  }
+
+  .sim-section.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── STEPS BAR ── */
+  .steps-bar {
+    padding: 12px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 24px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: var(--bg2);
+  }
+
+  .steps-bar::-webkit-scrollbar { display: none; }
+
+  .step-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--text-3);
     white-space: nowrap;
-    font-weight: 500;
+    transition: color 0.3s;
+    animation: fadeIn 0.3s ease;
   }
 
-  .new-search-btn:hover { opacity: 0.7; }
+  .step-chip.active { color: var(--text-2); }
+  .step-chip.done { color: var(--bullish); }
+  .step-chip.error { color: var(--bearish); }
 
-  /* MAIN GRID */
-  .results-grid {
+  .step-chip-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
     display: grid;
-    grid-template-columns: 260px 1fr 300px;
-    gap: 0;
-    min-height: calc(100vh - 130px);
+    grid-template-columns: 240px 1fr 280px;
+    min-height: 70vh;
   }
 
-  .col {
+  .panel {
     padding: 24px;
     border-right: 1px solid var(--border);
   }
 
-  .col:last-child { border-right: none; }
+  .panel:last-child { border-right: none; }
 
-  .col-label {
-    font-size: 11px;
+  .panel-label {
+    font-size: 10px;
     font-weight: 500;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-3);
     margin-bottom: 16px;
   }
 
-  /* GRAPH NODES */
+  /* ── GRAPH ── */
   .graph-node {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
+    gap: 8px;
+    padding: 8px 10px;
     border-radius: var(--radius-sm);
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     background: var(--bg2);
     border: 1px solid var(--border);
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, transform 0.2s;
+    opacity: 0;
+    animation: nodeIn 0.4s ease forwards;
   }
 
-  .graph-node:hover { border-color: var(--border-hover); }
+  @keyframes nodeIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .graph-node:hover { border-color: var(--border-hover); transform: translateX(2px); }
 
   .node-badge {
-    font-size: 9px;
+    font-size: 8px;
     font-weight: 500;
-    padding: 2px 7px;
-    border-radius: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .nb-org { background: rgba(123,143,189,0.15); color: var(--uncertain); }
@@ -418,133 +538,44 @@
   .nb-person { background: var(--accent-soft); color: var(--accent); }
   .nb-event { background: var(--bearish-soft); color: var(--bearish); }
 
-  .node-name { font-size: 13px; color: var(--text); font-weight: 400; }
+  .node-name { font-size: 12px; color: var(--text); }
 
   .graph-edge {
-    font-size: 13px;
-    color: var(--text-2);
-    padding: 10px 0;
+    font-size: 11px;
+    padding: 8px 0;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     border-bottom: 1px solid var(--border);
+    opacity: 0;
+    animation: fadeIn 0.4s ease forwards;
   }
 
   .graph-edge:last-child { border-bottom: none; }
-
-  .edge-source { text-align: right; font-size: 13px; color: var(--text); }
-  .edge-target { text-align: left; font-size: 13px; color: var(--text); }
+  .edge-source { text-align: right; font-size: 11px; color: var(--text-2); }
+  .edge-target { text-align: left; font-size: 11px; color: var(--text-2); }
 
   .edge-rel {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--accent);
     font-style: italic;
     font-family: var(--font-display);
     text-align: center;
     white-space: nowrap;
-    padding: 2px 8px;
+    padding: 2px 7px;
     background: var(--accent-softer);
     border-radius: 20px;
   }
 
-  /* STEPS */
-  .step-line {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 4px 0;
-    font-size: 13px;
-    color: var(--text-2);
-    animation: fadeIn 0.3s ease;
-  }
-
-  .step-line::before {
-    content: '—';
-    color: var(--text-3);
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  .step-error { color: var(--bearish); }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* AGENT CARDS */
-  .agent-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 18px;
-    margin-bottom: 10px;
-    animation: fadeIn 0.4s ease;
-    transition: border-color 0.2s;
-  }
-
-  .agent-card:hover { border-color: var(--border-hover); }
-
-  .agent-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 8px;
-  }
-
-  .agent-identity { display: flex; flex-direction: column; gap: 2px; }
-
-  .agent-name {
-    font-family: var(--font-display);
-    font-size: 15px;
-    color: var(--text);
-    letter-spacing: -0.2px;
-  }
-
-  .agent-role {
-    font-size: 11px;
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-weight: 500;
-  }
-
-  .stance-pill {
-    font-size: 11px;
-    font-weight: 500;
-    padding: 4px 10px;
-    border-radius: 20px;
-    letter-spacing: 0.04em;
-  }
-
-  .sp-bearish { background: var(--bearish-soft); color: var(--bearish); }
-  .sp-bullish { background: var(--bullish-soft); color: var(--bullish); }
-  .sp-neutral { background: var(--neutral-soft); color: var(--neutral); }
-  .sp-uncertain { background: var(--uncertain-soft); color: var(--uncertain); }
-
-  .agent-message {
-    font-size: 13px;
-    color: var(--text-2);
-    line-height: 1.65;
-    font-weight: 300;
-  }
-
-  .agent-influenced {
-    margin-top: 8px;
-    font-size: 11px;
-    color: var(--text-3);
-    font-style: italic;
-    font-family: var(--font-display);
-  }
-
+  /* ── AGENT CARDS ── */
   .round-label {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-3);
-    padding: 12px 0 8px;
+    padding: 16px 0 10px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -557,30 +588,123 @@
     background: var(--border);
   }
 
-  /* REPORT */
+  .agent-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    opacity: 0;
+    animation: cardSlideIn 0.45s ease forwards;
+  }
+
+  @keyframes cardSlideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .agent-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+
+  .agent-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .agent-identity { display: flex; flex-direction: column; gap: 1px; }
+
+  .agent-name {
+    font-family: var(--font-display);
+    font-size: 14px;
+    color: var(--text);
+    letter-spacing: -0.2px;
+  }
+
+  .agent-role {
+    font-size: 10px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 500;
+  }
+
+  .stance-pill {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 3px 9px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+    transition: transform 0.2s;
+  }
+
+  .agent-card:hover .stance-pill { transform: scale(1.05); }
+
+  .sp-bearish { background: var(--bearish-soft); color: var(--bearish); }
+  .sp-bullish { background: var(--bullish-soft); color: var(--bullish); }
+  .sp-neutral { background: var(--neutral-soft); color: var(--neutral); }
+  .sp-uncertain { background: var(--uncertain-soft); color: var(--uncertain); }
+
+  .agent-message {
+    font-size: 12px;
+    color: var(--text-2);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .agent-influenced {
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--text-3);
+    font-style: italic;
+    font-family: var(--font-display);
+  }
+
+  /* ── REPORT PANEL ── */
   .signal-card {
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 16px;
+    padding: 28px 24px;
+    margin-bottom: 20px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .signal-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 100%, var(--accent-softer), transparent 70%);
+    pointer-events: none;
   }
 
   .signal-eyebrow {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-3);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
   }
 
   .signal-value {
     font-family: var(--font-display);
-    font-size: 42px;
-    letter-spacing: -1px;
+    font-size: 48px;
+    letter-spacing: -2px;
     line-height: 1;
+    animation: signalPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes signalPop {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
   }
 
   .sv-bearish { color: var(--bearish); }
@@ -588,20 +712,20 @@
   .sv-neutral { color: var(--neutral); }
   .sv-uncertain { color: var(--uncertain); }
 
-  .bar-item { margin-bottom: 14px; }
+  .bar-item { margin-bottom: 16px; }
 
   .bar-meta {
     display: flex;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 11px;
     margin-bottom: 5px;
   }
 
-  .bar-name { color: var(--text-2); font-weight: 400; }
+  .bar-name { color: var(--text-2); }
   .bar-num { color: var(--text); font-weight: 500; }
 
   .bar-track {
-    height: 4px;
+    height: 3px;
     background: var(--bg3);
     border-radius: 2px;
     overflow: hidden;
@@ -611,7 +735,7 @@
     height: 100%;
     border-radius: 2px;
     width: 0%;
-    transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    transition: width 1.4s cubic-bezier(0.4,0,0.2,1);
   }
 
   .bf-bearish { background: var(--bearish); }
@@ -623,50 +747,52 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 0;
+    padding: 9px 0;
     border-bottom: 1px solid var(--border);
+    transition: opacity 0.2s;
+    animation: fadeIn 0.4s ease forwards;
+    opacity: 0;
   }
 
   .participant-card:last-child { border-bottom: none; }
+  .participant-card:hover { opacity: 0.8; }
 
   .participant-avatar {
-    width: 32px; height: 32px;
+    width: 30px; height: 30px;
     border-radius: 50%;
     background: var(--bg3);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-display);
-    font-size: 13px;
+    font-size: 11px;
     color: var(--text-2);
     flex-shrink: 0;
     border: 1px solid var(--border);
   }
 
-  .participant-info { flex: 1; min-width: 0; }
-
   .participant-name {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text);
-    font-weight: 400;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .participant-type {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--text-3);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
 
-  .loading-shimmer {
+  /* ── LOADING SHIMMER ── */
+  .shimmer {
     height: 2px;
     background: var(--bg3);
     border-radius: 1px;
     overflow: hidden;
-    margin: 8px 0 16px;
+    margin: 6px 0 14px;
   }
 
   .shimmer-fill {
@@ -677,29 +803,79 @@
   }
 
   @keyframes shimmer {
-    0% { transform: translateX(-150%); }
-    100% { transform: translateX(400%); }
+    0% { transform: translateX(-200%); }
+    100% { transform: translateX(500%); }
   }
 
-  .empty-col {
+  /* ── EMPTY STATE ── */
+  .empty {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 200px;
+    min-height: 160px;
     color: var(--text-3);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 300;
     text-align: center;
-    gap: 8px;
+    gap: 6px;
   }
 
-  .empty-col-icon {
+  .empty-icon {
     font-family: var(--font-display);
-    font-size: 24px;
+    font-size: 20px;
     font-style: italic;
-    color: var(--text-3);
-    opacity: 0.5;
+    opacity: 0.4;
+    margin-bottom: 4px;
+  }
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 768px) {
+    header { padding: 0 16px; }
+
+    .hero { padding: 56px 16px 60px; }
+
+    .hero-title { font-size: 32px; letter-spacing: -0.5px; }
+
+    .quick-tickers { flex-wrap: wrap; justify-content: center; }
+
+    .ticker-bar {
+      padding: 12px 16px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ticker-headline { display: none; }
+
+    .chart-section { height: 280px; }
+
+    .steps-bar { padding: 10px 16px; }
+
+    .main-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .panel {
+      border-right: none !important;
+      border-bottom: 1px solid var(--border);
+      position: static !important;
+      height: auto !important;
+      overflow-y: visible !important;
+    }
+
+    .panel:last-child { border-bottom: none; }
+
+    #reportPanel {
+      position: static !important;
+      height: auto !important;
+      overflow-y: visible !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title { font-size: 26px; }
+    .search-box { padding: 16px 14px 12px; }
+    .ticker-field { font-size: 24px; }
+    .chart-section { height: 220px; }
   }
 </style>
 </head>
@@ -715,11 +891,11 @@
   </div>
 </header>
 
-<!-- HERO STATE -->
+<!-- ══ HERO ══ -->
 <div class="hero" id="heroState">
   <div class="hero-eyebrow">Market Intelligence</div>
   <h1 class="hero-title">Before you trade,<br><em>simulate</em> the reaction.</h1>
-  <p class="hero-sub">Phoenix simulates how thousands of AI trader personas respond to market news — giving you a sentiment signal before you place a trade.</p>
+  <p class="hero-sub">Phoenix spawns AI trader personas that react to live market news — delivering a sentiment signal before you place a trade.</p>
 
   <div class="search-container">
     <div class="search-box">
@@ -755,49 +931,66 @@
   </div>
 </div>
 
-<!-- RESULTS STATE -->
+<!-- ══ RESULTS ══ -->
 <div class="results" id="resultsState">
-  <div class="results-header">
-    <div class="results-ticker" id="resultsTicker">SPY</div>
-    <div class="results-headline" id="resultsHeadline">Fetching latest news...</div>
+
+  <!-- Sticky ticker bar -->
+  <div class="ticker-bar">
+    <div class="ticker-symbol" id="resultsTicker">SPY</div>
+    <div class="ticker-divider"></div>
+    <div class="ticker-headline" id="resultsHeadline">Fetching latest news...</div>
+    <div class="ticker-status" id="tickerStatus">
+      <div class="status-pulse" id="statusPulse"></div>
+      <span id="statusText">Simulating</span>
+    </div>
     <button class="new-search-btn" onclick="newSearch()">← New search</button>
   </div>
 
-  <div class="results-grid">
-    <!-- LEFT: GRAPH -->
-    <div class="col" id="graphCol">
-      <div class="col-label">Knowledge graph</div>
-      <div id="graphNodes"></div>
-      <div id="graphEdges" style="margin-top:12px"></div>
-      <div class="loading-shimmer" id="graphShimmer" style="display:none">
-        <div class="shimmer-fill"></div>
-      </div>
-    </div>
+  <!-- Chart — full width, tall -->
+  <div class="chart-section" id="chartSection">
+    <div id="tradingview-widget" style="width:100%;height:100%;"></div>
+  </div>
 
-    <!-- CENTER: FEED -->
-    <div class="col" id="feedCol">
-      <div class="col-label">Live agent feed</div>
-      <div class="loading-shimmer" id="feedShimmer">
-        <div class="shimmer-fill"></div>
+  <!-- Simulation results -->
+  <div class="sim-section" id="simSection">
+
+    <!-- Steps bar -->
+    <div class="steps-bar" id="stepsBar"></div>
+
+    <!-- Three columns -->
+    <div class="main-grid">
+
+      <!-- LEFT: Knowledge graph -->
+      <div class="panel">
+        <div class="panel-label">Knowledge graph</div>
+        <div class="shimmer" id="graphShimmer" style="display:none"><div class="shimmer-fill"></div></div>
+        <div id="graphNodes"></div>
+        <div id="graphEdges" style="margin-top:10px"></div>
       </div>
-      <div id="stepsLog"></div>
-      <div id="agentFeed">
-        <div class="empty-col">
-          <div class="empty-col-icon">Simulating</div>
-          Agent reactions will appear here
+
+      <!-- CENTER: Agent feed -->
+      <div class="panel" style="border-right:1px solid var(--border);">
+        <div class="panel-label">Live agent feed</div>
+        <div class="shimmer" id="feedShimmer"><div class="shimmer-fill"></div></div>
+        <div id="agentFeed">
+          <div class="empty">
+            <div class="empty-icon">Simulating</div>
+            Agent reactions will appear here
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- RIGHT: REPORT -->
-    <div class="col" id="reportCol">
-      <div class="col-label">Sentiment report</div>
-      <div id="reportContent">
-        <div class="empty-col">
-          <div class="empty-col-icon">Awaiting</div>
-          Results after simulation
+      <!-- RIGHT: Report -->
+      <div class="panel" id="reportPanel" style="position:sticky; top:56px; height:calc(100vh - 56px); overflow-y:auto; align-self:start;">
+        <div class="panel-label">Sentiment report</div>
+        <div id="reportContent">
+          <div class="empty">
+            <div class="empty-icon">Awaiting</div>
+            Results after simulation
+          </div>
         </div>
       </div>
+
     </div>
   </div>
 </div>
@@ -813,6 +1006,10 @@
     isDark = !isDark;
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     document.getElementById('themeBtn').textContent = isDark ? 'Light mode' : 'Dark mode';
+    const ticker = document.getElementById('resultsTicker').textContent;
+    if (ticker && document.getElementById('resultsState').classList.contains('visible')) {
+      loadChart(ticker);
+    }
   }
 
   function setTicker(t) {
@@ -828,9 +1025,40 @@
     document.getElementById('runBtn').textContent = 'Run simulation';
   }
 
-  document.getElementById('tickerInput').addEventListener('keydown', function(e) {
+  document.getElementById('tickerInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') runSimulation();
   });
+
+  function loadChart(ticker) {
+    const widget = document.getElementById('tradingview-widget');
+    widget.innerHTML = '';
+
+    const script = document.createElement('script');
+    script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      autosize: true,
+      symbol: ticker,
+      interval: 'D',
+      timezone: 'America/New_York',
+      theme: isDark ? 'dark' : 'light',
+      style: '1',
+      locale: 'en',
+      backgroundColor: isDark ? '#0f0f11' : '#f8f7f4',
+      gridColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+      hide_top_toolbar: false,
+      hide_legend: false,
+      save_image: false,
+      calendar: false,
+      support_host: 'https://www.tradingview.com'
+    });
+    widget.appendChild(script);
+
+    // Reveal chart with animation
+    setTimeout(() => {
+      document.getElementById('chartSection').classList.add('revealed');
+    }, 100);
+  }
 
   async function runSimulation() {
     const ticker = document.getElementById('tickerInput').value.trim().toUpperCase() || 'SPY';
@@ -839,24 +1067,38 @@
 
     if (pollInterval) clearInterval(pollInterval);
 
+    // Reset UI
     document.getElementById('runBtn').disabled = true;
     document.getElementById('runBtn').textContent = 'Simulating...';
-
     document.getElementById('heroState').classList.add('hidden');
     document.getElementById('resultsState').classList.add('visible');
+
+    // Reset panels
     document.getElementById('resultsTicker').textContent = ticker;
     document.getElementById('resultsHeadline').textContent = 'Fetching latest news...';
+    document.getElementById('statusPulse').className = 'status-pulse';
+    document.getElementById('statusText').textContent = 'Simulating';
+    document.getElementById('stepsBar').innerHTML = '';
     document.getElementById('graphNodes').innerHTML = '';
     document.getElementById('graphEdges').innerHTML = '';
-    document.getElementById('stepsLog').innerHTML = '';
+    document.getElementById('agentFeed').innerHTML = '<div class="empty"><div class="empty-icon">Simulating</div>Agent reactions will appear here</div>';
+    document.getElementById('reportContent').innerHTML = '<div class="empty"><div class="empty-icon">Awaiting</div>Results after simulation</div>';
     document.getElementById('feedShimmer').style.display = 'block';
-    document.getElementById('graphShimmer').style.display = 'block';
-    document.getElementById('agentFeed').innerHTML = '<div class="empty-col"><div class="empty-col-icon">Simulating</div>Agent reactions will appear here</div>';
-    document.getElementById('reportContent').innerHTML = '<div class="empty-col"><div class="empty-col-icon">Awaiting</div>Results after simulation</div>';
+    document.getElementById('graphShimmer').style.display = 'none';
+    document.getElementById('chartSection').classList.remove('revealed');
+    document.getElementById('simSection').classList.remove('revealed');
 
     lastMessageCount = 0;
     lastStepCount = 0;
     currentRunId = null;
+
+    // Load chart immediately
+    loadChart(ticker);
+
+    // Reveal sim section after chart animates in
+    setTimeout(() => {
+      document.getElementById('simSection').classList.add('revealed');
+    }, 400);
 
     try {
       const res = await fetch('/api/run', {
@@ -884,12 +1126,15 @@
         document.getElementById('resultsHeadline').textContent = data.headline;
       }
 
+      // Steps as chips in the bar
       if (data.steps && data.steps.length > lastStepCount) {
         data.steps.slice(lastStepCount).forEach(step => {
-          const el = document.createElement('div');
-          el.className = 'step-line' + (step.startsWith('Error') ? ' step-error' : '');
-          el.textContent = step;
-          document.getElementById('stepsLog').appendChild(el);
+          const chip = document.createElement('div');
+          const isError = step.startsWith('Error');
+          chip.className = `step-chip ${isError ? 'error' : 'done'}`;
+          chip.innerHTML = `<div class="step-chip-dot"></div>${step}`;
+          document.getElementById('stepsBar').appendChild(chip);
+          document.getElementById('stepsBar').scrollLeft = 9999;
         });
         lastStepCount = data.steps.length;
       }
@@ -899,6 +1144,7 @@
       if (data.messages && data.messages.length > lastMessageCount) {
         if (lastMessageCount === 0) {
           document.getElementById('agentFeed').innerHTML = '';
+          document.getElementById('feedShimmer').style.display = 'none';
         }
         const newMsgs = data.messages.slice(lastMessageCount);
         newMsgs.forEach((msg, i) => {
@@ -919,9 +1165,10 @@
         clearInterval(pollInterval);
         pollInterval = null;
         document.getElementById('feedShimmer').style.display = 'none';
-        document.getElementById('graphShimmer').style.display = 'none';
         document.getElementById('runBtn').disabled = false;
         document.getElementById('runBtn').textContent = 'Run simulation';
+        document.getElementById('statusPulse').className = 'status-pulse done';
+        document.getElementById('statusText').textContent = 'Complete';
         if (data.report) renderReport(data.report, data.personas);
       }
 
@@ -929,9 +1176,9 @@
         clearInterval(pollInterval);
         pollInterval = null;
         document.getElementById('feedShimmer').style.display = 'none';
-        document.getElementById('graphShimmer').style.display = 'none';
         document.getElementById('runBtn').disabled = false;
         document.getElementById('runBtn').textContent = 'Run simulation';
+        document.getElementById('statusText').textContent = 'Error';
       }
 
     } catch(e) { console.error(e); }
@@ -942,7 +1189,6 @@
     const edgesEl = document.getElementById('graphEdges');
     nodesEl.innerHTML = '';
     edgesEl.innerHTML = '';
-    document.getElementById('graphShimmer').style.display = 'none';
 
     const typeClass = {
       organization: 'nb-org',
@@ -952,24 +1198,28 @@
       event: 'nb-event'
     };
 
-    graph.nodes.forEach(node => {
+    graph.nodes.forEach((node, i) => {
       const el = document.createElement('div');
       el.className = 'graph-node';
+      el.style.animationDelay = `${i * 0.06}s`;
       el.innerHTML = `<span class="node-badge ${typeClass[node.type] || 'nb-org'}">${node.type.replace('_',' ')}</span><span class="node-name">${node.name}</span>`;
       nodesEl.appendChild(el);
     });
 
     if (graph.edges.length > 0) {
       const label = document.createElement('div');
-      label.className = 'col-label';
+      label.className = 'panel-label';
+      label.style.marginTop = '12px';
       label.textContent = 'Relationships';
       edgesEl.appendChild(label);
-      graph.edges.forEach(edge => {
+
+      graph.edges.forEach((edge, i) => {
         const src = graph.nodes.find(n => n.id === edge.source);
         const tgt = graph.nodes.find(n => n.id === edge.target);
         if (src && tgt) {
           const el = document.createElement('div');
           el.className = 'graph-edge';
+          el.style.animationDelay = `${i * 0.08}s`;
           el.innerHTML = `<span class="edge-source">${src.name}</span><span class="edge-rel">${edge.relation}</span><span class="edge-target">${tgt.name}</span>`;
           edgesEl.appendChild(el);
         }
@@ -980,7 +1230,6 @@
   function renderMessage(msg) {
     const el = document.createElement('div');
     el.className = 'agent-card';
-    const initials = msg.name.split(' ').map(w => w[0]).join('').substring(0,2);
     const influenced = msg.influenced_by ? `<div class="agent-influenced">influenced by ${msg.influenced_by}</div>` : '';
     el.innerHTML = `
       <div class="agent-top">
@@ -1013,12 +1262,12 @@
       </div>
     `).join('');
 
-    const participantsHtml = personas ? personas.map(p => {
+    const participantsHtml = personas ? personas.map((p, i) => {
       const initials = p.name.split(' ').map(w => w[0]).join('').substring(0,2);
       return `
-        <div class="participant-card">
+        <div class="participant-card" style="animation-delay:${i * 0.08}s">
           <div class="participant-avatar">${initials}</div>
-          <div class="participant-info">
+          <div>
             <div class="participant-name">${p.name}</div>
             <div class="participant-type">${p.type.replace(/_/g,' ')}</div>
           </div>
@@ -1031,9 +1280,9 @@
         <div class="signal-eyebrow">Dominant signal</div>
         <div class="signal-value sv-${dominant}">${dominant.charAt(0).toUpperCase() + dominant.slice(1)}</div>
       </div>
-      <div class="col-label" style="margin-bottom:12px">Breakdown</div>
+      <div class="panel-label" style="margin-bottom:12px">Breakdown</div>
       ${barsHtml}
-      ${personas ? `<div class="col-label" style="margin:20px 0 12px">Participants</div>${participantsHtml}` : ''}
+      ${personas ? `<div class="panel-label" style="margin:20px 0 12px">Participants</div>${participantsHtml}` : ''}
     `;
 
     setTimeout(() => {
@@ -1041,7 +1290,7 @@
         const el = document.getElementById(`bf-${s}`);
         if (el) el.style.width = (breakdown[s] || 0) + '%';
       });
-    }, 100);
+    }, 150);
   }
 </script>
 </body>
