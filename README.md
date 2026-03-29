@@ -2,6 +2,9 @@
 
 > Simulate how the market reacts before you trade.
 
+## Live Demo
+🔥 [project-phoenix.up.railway.app](https://project-phoenix.up.railway.app)
+
 Project Phoenix is an AI-powered market sentiment simulator that spawns multiple trader personas, lets them react to live market news, and produces a directional signal — before you place a trade.
 
 ## How it works
