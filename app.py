@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
+import yfinance as yf
 import threading
 import queue
 import json
@@ -101,6 +102,35 @@ def get_status(run_id):
 def get_news(ticker):
     articles = get_latest_news(ticker.upper(), max_articles=5)
     return jsonify(articles)
+
+@app.route('/api/stats/<ticker>')
+def get_stats(ticker):
+    try:
+        stock = yf.Ticker(ticker.upper())
+        info = stock.info
+
+        stats = {
+            "name": info.get("longName", ticker),
+            "exchange": info.get("exchange", ""),
+            "sector": info.get("sector", info.get("category", "")),
+            "price": info.get("currentPrice") or info.get("regularMarketPrice") or info.get("navPrice"),
+            "change": info.get("regularMarketChange"),
+            "change_pct": info.get("regularMarketChangePercent"),
+            "volume": info.get("regularMarketVolume"),
+            "avg_volume": info.get("averageVolume"),
+            "market_cap": info.get("marketCap"),
+            "aum": info.get("totalAssets"),
+            "beta": info.get("beta3Year") or info.get("beta"),
+            "dividend_yield": info.get("dividendYield"),
+            "fifty_two_week_high": info.get("fiftyTwoWeekHigh"),
+            "fifty_two_week_low": info.get("fiftyTwoWeekLow"),
+            "pe_ratio": info.get("trailingPE"),
+            "eps": info.get("trailingEps"),
+        }
+
+        return jsonify(stats)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@
 ## Live Demo
 🔥 [project-phoenix.up.railway.app](https://project-phoenix.up.railway.app)
 
-Project Phoenix is an AI-powered market sentiment simulator that spawns multiple trader personas, lets them react to live market news, and produces a directional signal — before you place a trade.
+Project Phoenix is an AI-powered market sentiment simulator that spawns multiple trader personas, lets them react to live market news, and produces a directional signal before you place a trade.
 
 ## How it works
 
@@ -77,4 +77,4 @@ Building in public. Work in progress.
 
 Reyansh Bhootra | CS @ NJIT | Class of 2028
 
-Built in public — follow the journey on [LinkedIn](https://linkedin.com/in/reyanshbhootra)
+Built in public follow the journey on [LinkedIn](https://linkedin.com/in/reyanshbhootra)
