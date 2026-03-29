@@ -63,10 +63,24 @@ Relationships: {chr(10).join(edges)}
 
     news_sentiment = detect_news_sentiment(headline) if headline else "MIXED/NEUTRAL"
 
+    majority = max(3, int(num_personas * 0.6))
+    minority = max(1, int(num_personas * 0.15))
+
     if news_sentiment == "NEGATIVE/BEARISH":
-        stance_instruction = f"The market event sentiment is: {news_sentiment}. At least 3 out of {num_personas} personas must have an initial_stance of 'bearish'. Only 1 persona may be bullish as a contrarian. The rest should be neutral or uncertain."
+        stance_instruction = f"""The market event sentiment is strongly: {news_sentiment}.
+    STRICT REQUIREMENTS for initial_stance distribution:
+    - At least {majority} personas MUST start as 'bearish' 
+    - Maximum {minority} persona can be 'bullish' (contrarian only)
+    - Remaining can be 'neutral' or 'uncertain'
+    This is a REQUIREMENT, not a suggestion. Count your bearish stances before finalizing."""
+
     elif news_sentiment == "POSITIVE/BULLISH":
-        stance_instruction = f"The market event sentiment is: {news_sentiment}. At least 3 out of {num_personas} personas must have an initial_stance of 'bullish'. Only 1 persona may be bearish as a contrarian. The rest should be neutral or uncertain."
+        stance_instruction = f"""The market event sentiment is strongly: {news_sentiment}.
+    STRICT REQUIREMENTS for initial_stance distribution:
+    - At least {majority} personas MUST start as 'bullish'
+    - Maximum {minority} persona can be 'bearish' (contrarian only)
+    - Remaining can be 'neutral' or 'uncertain'
+    This is a REQUIREMENT, not a suggestion. Count your bullish stances before finalizing."""
     else:
         stance_instruction = f"The market event sentiment is: {news_sentiment}. Mix stances realistically -- some bullish, some bearish, some neutral or uncertain."
 

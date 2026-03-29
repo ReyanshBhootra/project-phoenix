@@ -289,6 +289,7 @@ def manual_backtest(cases: list):
 
 if __name__ == "__main__":
     test_cases = [
+        # Week of March 24-27 2026 (recent, we know outcomes)
         {
             "ticker": "SPY",
             "headline": "Federal Reserve raises interest rates by 50 basis points amid inflation concerns",
@@ -314,6 +315,44 @@ if __name__ == "__main__":
             "ticker": "QQQ",
             "headline": "Big tech stocks slide as geopolitical tensions rise and AI spending concerns weigh on market sentiment",
             "date": "2026-03-27",
+            "num_personas": 5,
+            "rounds": 3
+        },
+        # February 2026
+        {
+            "ticker": "QQQ",
+            "headline": "Nvidia earnings disappoint investors as AI chip demand growth slows sending tech stocks lower",
+            "date": "2026-02-18",
+            "num_personas": 5,
+            "rounds": 3
+        },
+        {
+            "ticker": "SPY",
+            "headline": "Markets rally as Fed signals potential pause in rate hikes citing cooling inflation data",
+            "date": "2026-02-24",
+            "num_personas": 5,
+            "rounds": 3
+        },
+        # January 2026
+        {
+            "ticker": "SPY",
+            "headline": "Strong jobs report beats expectations with 300000 jobs added sending stocks higher",
+            "date": "2026-01-09",
+            "num_personas": 5,
+            "rounds": 3
+        },
+        {
+            "ticker": "QQQ",
+            "headline": "Apple misses revenue estimates as iPhone sales decline sending tech sector lower",
+            "date": "2026-01-28",
+            "num_personas": 5,
+            "rounds": 3
+        },
+        # December 2025
+        {
+            "ticker": "SPY",
+            "headline": "Santa Claus rally continues as markets hit record highs on strong consumer spending data",
+            "date": "2025-12-19",
             "num_personas": 5,
             "rounds": 3
         },
