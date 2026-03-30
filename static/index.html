@@ -1393,6 +1393,7 @@
   let dragSrcIndex = null;
   let currentRunId = null;
   let pollInterval = null;
+  let priceInterval = null;
   let isDark = true;
   let lastMessageCount = 0;
   let lastStepCount = 0;
@@ -1414,6 +1415,7 @@
 
   function newSearch() {
     if (pollInterval) clearInterval(pollInterval);
+    if (priceInterval) clearInterval(priceInterval);
     document.getElementById('heroState').classList.remove('hidden');
     document.getElementById('resultsState').classList.remove('visible');
     document.getElementById('runBtn').disabled = false;
@@ -1466,22 +1468,36 @@
             if (n >= 1e12) return prefix + (n/1e12).toFixed(1) + 'T' + suffix;
             if (n >= 1e9) return prefix + (n/1e9).toFixed(1) + 'B' + suffix;
             if (n >= 1e6) return prefix + (n/1e6).toFixed(1) + 'M' + suffix;
+            if (n >= 1e3) return prefix + (n/1e3).toFixed(1) + 'K' + suffix;
             return prefix + n.toFixed(decimals) + suffix;
         }
 
-        const changePct = s.change_pct ? (Math.abs(s.change_pct) > 1 ? s.change_pct.toFixed(2) : (s.change_pct * 100).toFixed(2)) : null;
+        function fmtVol(n) {
+            if (n === null || n === undefined) return '—';
+            if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+            if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+            if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+            return Math.round(n).toLocaleString();
+        }
+
+        const changePct = s.change_pct ? s.change_pct.toFixed(2) : null;
         const changeClass = s.change >= 0 ? 'positive' : 'negative';
         const changeSign = s.change >= 0 ? '+' : '';
+
+        // Div yield -- Alpaca returns as decimal (0.0106 = 1.06%), yfinance also returns decimal
+        const divYield = s.dividend_yield
+            ? (s.dividend_yield > 1 ? s.dividend_yield.toFixed(2) + '%' : (s.dividend_yield * 100).toFixed(2) + '%')
+            : '—';
 
         const stats = [
             { label: 'Price', value: s.price ? `$${s.price.toFixed(2)}` : '—', cls: '', hero: true, rawPrice: s.price },
             { label: 'Change', value: s.change ? `${changeSign}${s.change.toFixed(2)} (${changeSign}${changePct}%)` : '—', cls: changeClass },
-            { label: 'Volume', value: fmt(s.volume), cls: '' },
-            { label: 'Avg Volume', value: fmt(s.avg_volume), cls: '' },
+            { label: 'Volume', value: fmtVol(s.volume), cls: '' },
+            { label: 'Avg Volume', value: fmtVol(s.avg_volume), cls: '' },
             { label: 'Market Cap', value: fmt(s.market_cap, '$'), cls: '' },
             { label: 'AUM', value: fmt(s.aum, '$'), cls: '' },
             { label: 'Beta', value: s.beta ? s.beta.toFixed(2) : '—', cls: '' },
-            { label: 'Div Yield', value: s.dividend_yield ? (s.dividend_yield * 100).toFixed(2) + '%' : '—', cls: '' },
+            { label: 'Div Yield', value: divYield, cls: '' },
             { label: '52W High', value: s.fifty_two_week_high ? `$${s.fifty_two_week_high.toFixed(2)}` : '—', cls: '' },
             { label: '52W Low', value: s.fifty_two_week_low ? `$${s.fifty_two_week_low.toFixed(2)}` : '—', cls: '' },
             { label: 'P/E Ratio', value: s.pe_ratio ? s.pe_ratio.toFixed(2) : '—', cls: '' },
@@ -1498,7 +1514,6 @@
 
         setTimeout(() => {
             bar.classList.add('revealed');
-            // Animate price counting up
             const heroEl = document.getElementById('heroPriceVal');
             if (heroEl && s.price) {
                 const target = s.price;
@@ -1514,12 +1529,45 @@
                 }
                 requestAnimationFrame(tick);
             }
-            // Flash change color
             const changeEl = bar.querySelector('.stat-item:nth-child(2) .stat-value');
             if (changeEl) {
                 changeEl.style.animation = 'flashIn 0.6s ease forwards';
             }
         }, 200);
+
+        // Start live price polling
+        if (priceInterval) clearInterval(priceInterval);
+        priceInterval = setInterval(async () => {
+            try {
+                const r = await fetch(`/api/stats/${ticker}`);
+                const d = await r.json();
+                if (d.error || !d.price) return;
+
+                const priceEl = document.getElementById('heroPriceVal');
+                const changeEl = document.querySelector('.stat-item:nth-child(2) .stat-value');
+                const volEl = document.querySelector('.stat-item:nth-child(3) .stat-value');
+
+                if (priceEl) {
+                    const newPrice = `$${d.price.toFixed(2)}`;
+                    if (priceEl.textContent !== newPrice) {
+                        priceEl.style.transition = 'color 0.3s ease';
+                        priceEl.style.color = d.change >= 0 ? 'var(--bullish)' : 'var(--bearish)';
+                        priceEl.textContent = newPrice;
+                        setTimeout(() => priceEl.style.color = 'var(--text)', 800);
+                    }
+                }
+
+                if (changeEl && d.change_pct !== null) {
+                    const sign = d.change >= 0 ? '+' : '';
+                    changeEl.textContent = `${sign}${d.change.toFixed(2)} (${sign}${d.change_pct.toFixed(2)}%)`;
+                    changeEl.className = `stat-value ${d.change >= 0 ? 'positive' : 'negative'}`;
+                }
+
+                if (volEl && d.volume) volEl.textContent = fmtVol(d.volume);
+
+            } catch(e) {}
+        }, 5000);
+
     } catch(e) { console.error(e); }
   }
 
@@ -1529,6 +1577,7 @@
     const rounds = parseInt(document.getElementById('roundsRange').value);
 
     if (pollInterval) clearInterval(pollInterval);
+    if (priceInterval) clearInterval(priceInterval);
 
     // Reset UI
     document.getElementById('runBtn').disabled = true;
@@ -1828,7 +1877,7 @@
 
               if (priceEl && s.price) priceEl.textContent = `$${s.price.toFixed(2)}`;
               if (changeEl && s.change_pct !== null && s.change_pct !== undefined) {
-                  const pct = Math.abs(s.change_pct) > 1 ? s.change_pct.toFixed(2) : (s.change_pct * 100).toFixed(2);
+                  const pct = s.change_pct ? s.change_pct.toFixed(2) : '0.00';
                   const sign = s.change >= 0 ? '+' : '';
                   changeEl.textContent = `${sign}${pct}%`;
                   changeEl.className = `wl-ticker-change ${s.change >= 0 ? 'wl-positive' : 'wl-negative'}`;

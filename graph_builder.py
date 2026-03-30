@@ -51,8 +51,8 @@ def build_graph(data: dict) -> nx.DiGraph:
         G.add_node(entity["id"], name=entity["name"], type=entity["type"])
 
     for rel in data["relationships"]:
-        G.add_edge(rel["source"], rel["target"], relation=rel["relation"])
-
+        if rel.get("source") and rel.get("target") and rel.get("relation"):
+            G.add_edge(rel["source"], rel["target"], relation=rel["relation"])
     return G
 
 

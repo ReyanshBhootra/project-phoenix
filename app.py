@@ -5,6 +5,8 @@ import threading
 import queue
 import json
 import os
+from price_feed import get_snapshot
+
 
 from news_fetcher import get_latest_news
 from graph_builder import extract_entities_and_relations, build_graph
@@ -63,8 +65,10 @@ def run_pipeline_async(run_id: str, ticker: str, num_personas: int, rounds: int)
         simulation_results[run_id]["steps"].append("Simulation complete")
 
     except Exception as e:
+        import traceback
         simulation_results[run_id]["status"] = "error"
         simulation_results[run_id]["error"] = str(e)
+        print(f"PIPELINE ERROR: {traceback.format_exc()}")
 
 
 @app.route('/')
@@ -106,17 +110,26 @@ def get_news(ticker):
 @app.route('/api/stats/<ticker>')
 def get_stats(ticker):
     try:
+        # Real-time price from Alpaca
+        alpaca_data = get_snapshot(ticker.upper())
+
+        # Fundamentals from yfinance
         stock = yf.Ticker(ticker.upper())
         info = stock.info
+
+        # Use Alpaca price if available, fall back to yfinance
+        price = alpaca_data["price"] if alpaca_data else (info.get("currentPrice") or info.get("regularMarketPrice"))
+        change = alpaca_data["change"] if alpaca_data else info.get("regularMarketChange")
+        change_pct = alpaca_data["change_pct"] if alpaca_data else info.get("regularMarketChangePercent")
 
         stats = {
             "name": info.get("longName", ticker),
             "exchange": info.get("exchange", ""),
             "sector": info.get("sector", info.get("category", "")),
-            "price": info.get("currentPrice") or info.get("regularMarketPrice") or info.get("navPrice"),
-            "change": info.get("regularMarketChange"),
-            "change_pct": info.get("regularMarketChangePercent"),
-            "volume": info.get("regularMarketVolume"),
+            "price": price,
+            "change": change,
+            "change_pct": change_pct,
+            "volume": alpaca_data["volume"] if alpaca_data else info.get("regularMarketVolume"),
             "avg_volume": info.get("averageVolume"),
             "market_cap": info.get("marketCap"),
             "aum": info.get("totalAssets"),
@@ -126,6 +139,7 @@ def get_stats(ticker):
             "fifty_two_week_low": info.get("fiftyTwoWeekLow"),
             "pe_ratio": info.get("trailingPE"),
             "eps": info.get("trailingEps"),
+            "realtime": alpaca_data is not None,
         }
 
         return jsonify(stats)
