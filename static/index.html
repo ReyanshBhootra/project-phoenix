@@ -1539,7 +1539,7 @@
         if (priceInterval) clearInterval(priceInterval);
         priceInterval = setInterval(async () => {
             try {
-                const r = await fetch(`/api/stats/${ticker}`);
+                const r = await fetch(`/api/price/${ticker}`);
                 const d = await r.json();
                 if (d.error || !d.price) return;
 
@@ -1566,7 +1566,7 @@
                 if (volEl && d.volume) volEl.textContent = fmtVol(d.volume);
 
             } catch(e) {}
-        }, 5000);
+        }, 3000);
 
     } catch(e) { console.error(e); }
   }

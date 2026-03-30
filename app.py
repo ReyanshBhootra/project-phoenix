@@ -107,6 +107,16 @@ def get_news(ticker):
     articles = get_latest_news(ticker.upper(), max_articles=5)
     return jsonify(articles)
 
+@app.route('/api/price/<ticker>')
+def get_price(ticker):
+    try:
+        snap = get_snapshot(ticker.upper())
+        if not snap:
+            return jsonify({"error": "no data"}), 404
+        return jsonify(snap)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/stats/<ticker>')
 def get_stats(ticker):
     try:
