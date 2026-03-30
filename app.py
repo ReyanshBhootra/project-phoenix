@@ -8,10 +8,27 @@ import os
 from price_feed import get_snapshot
 
 
+
 from news_fetcher import get_latest_news
 from graph_builder import extract_entities_and_relations, build_graph
 from persona_generator import generate_personas
 from simulation import run_simulation, calculate_sentiment
+
+from collections import defaultdict
+import time
+
+request_counts = defaultdict(list)
+
+def is_rate_limited(ip):
+    if ip in ('127.0.0.1', 'localhost', '::1'):
+        return False
+    now = time.time()
+    hour_ago = now - 3600
+    request_counts[ip] = [t for t in request_counts[ip] if t > hour_ago]
+    if len(request_counts[ip]) >= 3:
+        return True
+    request_counts[ip].append(now)
+    return False
 
 app = Flask(__name__, static_folder='static')
 CORS(app)
@@ -78,6 +95,9 @@ def index():
 
 @app.route('/api/run', methods=['POST'])
 def run_simulation_endpoint():
+    ip = request.remote_addr
+    if is_rate_limited(ip):
+        return jsonify({"error": "Rate limit exceeded. Max 3 simulations per hour."}), 429
     data = request.json
     ticker = data.get('ticker', 'SPY').upper()
     num_personas = int(data.get('num_personas', 5))
