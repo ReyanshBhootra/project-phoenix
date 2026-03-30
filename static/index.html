@@ -568,6 +568,293 @@
     border-radius: 20px;
   }
 
+  /* ── WATCHLIST SIDEBAR ── */
+  .wl-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-family: var(--font-body);
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .wl-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-softer);
+    box-shadow: 0 0 12px var(--accent-softer);
+  }
+
+  .wl-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 300;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(2px);
+  }
+
+  .wl-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .wl-sidebar {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: 320px;
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    z-index: 400;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .wl-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.4s ease 0.3s;
+  }
+
+  .wl-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .wl-sidebar.open::before {
+    opacity: 1;
+  }
+
+  .wl-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .wl-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
+
+  .wl-title span { color: var(--accent); font-style: italic; }
+
+  .wl-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-3);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .wl-close:hover {
+    border-color: var(--bearish);
+    color: var(--bearish);
+  }
+
+  .wl-add {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .wl-input {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 16px;
+    padding: 8px 12px;
+    outline: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .wl-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-softer);
+  }
+
+  .wl-input::placeholder { color: var(--text-3); font-size: 13px; font-family: var(--font-body); text-transform: none; letter-spacing: 0; }
+
+  .wl-add-btn {
+    background: var(--accent);
+    border: none;
+    color: white;
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .wl-add-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+  .wl-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .wl-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transform: translateX(20px);
+    animation: wlSlideIn 0.35s ease forwards;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .wl-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: var(--accent);
+    transform: scaleY(0);
+    transition: transform 0.2s ease;
+  }
+
+  .wl-item:hover::before { transform: scaleY(1); }
+
+  .wl-item:hover {
+    background: var(--bg2);
+    padding-left: 24px;
+  }
+
+  .wl-item:last-child { border-bottom: none; }
+
+  @keyframes wlSlideIn {
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .wl-ticker-sym {
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: var(--text);
+    letter-spacing: -0.2px;
+    flex: 1;
+  }
+
+  .wl-ticker-price {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-2);
+    margin-right: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .wl-ticker-change {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-right: 8px;
+  }
+
+  .wl-positive { background: var(--bullish-soft); color: var(--bullish); }
+  .wl-negative { background: var(--bearish-soft); color: var(--bearish); }
+
+  .wl-remove {
+    background: none;
+    border: none;
+    color: var(--text-3);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    opacity: 0;
+    line-height: 1;
+  }
+
+  .wl-item:hover .wl-remove {
+    opacity: 1;
+    color: var(--bearish);
+  }
+
+  .wl-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: var(--text-3);
+    font-size: 13px;
+    font-weight: 300;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .wl-empty-icon {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-style: italic;
+    opacity: 0.3;
+  }
+
+  .wl-scan-line {
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(232,132,90,0.04), transparent);
+    animation: scanLine 3s ease-in-out infinite;
+  }
+
+  @keyframes scanLine {
+    0% { left: -100%; }
+    50% { left: 100%; }
+    100% { left: 100%; }
+  }
+
+  .wl-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--text-3);
+    text-align: center;
+    flex-shrink: 0;
+  }
+
   /* ── AGENT CARDS ── */
   .round-label {
     font-size: 10px;
@@ -948,6 +1235,36 @@
       100% { opacity: 1; transform: translateY(0); }
   }
 
+  .wl-suggestion {
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.15s;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+  }
+
+  .wl-suggestion:last-child { border-bottom: none; }
+  .wl-suggestion:hover { background: var(--bg3); }
+
+  .wl-sug-ticker {
+      font-family: var(--font-display);
+      font-size: 14px;
+      color: var(--text);
+      min-width: 50px;
+  }
+
+  .wl-sug-name {
+      font-size: 11px;
+      color: var(--text-3);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+  }
+
+
 </style>
 </head>
 <body>
@@ -958,6 +1275,9 @@
     Phoenix
   </div>
   <div class="header-actions">
+    <button class="wl-btn" onclick="openWatchlist()">
+        <span>⊞</span> Watchlist
+    </button>
     <button class="btn-ghost" onclick="toggleTheme()" id="themeBtn">Light mode</button>
   </div>
 </header>
@@ -1070,6 +1390,7 @@
 </div>
 
 <script>
+  let dragSrcIndex = null;
   let currentRunId = null;
   let pollInterval = null;
   let isDark = true;
@@ -1436,6 +1757,251 @@
       });
     }, 150);
   }
+
+  // ── WATCHLIST ──
+  let watchlist = JSON.parse(localStorage.getItem('phoenix_watchlist') || '[]');
+
+  function openWatchlist() {
+    document.getElementById('wlSidebar').classList.add('open');
+    document.getElementById('wlOverlay').classList.add('open');
+    renderWatchlist();
+    setTimeout(() => fetchWatchlistPrices(), 300);
+  }
+
+  function closeWatchlist() {
+      document.getElementById('wlSidebar').classList.remove('open');
+      document.getElementById('wlOverlay').classList.remove('open');
+  }
+
+  function addToWatchlist() {
+      const input = document.getElementById('wlInput');
+      const ticker = input.value.trim().toUpperCase();
+      if (!ticker) return;
+      if (watchlist.includes(ticker)) {
+          input.value = '';
+          return;
+      }
+      watchlist.push(ticker);
+      localStorage.setItem('phoenix_watchlist', JSON.stringify(watchlist));
+      input.value = '';
+      renderWatchlist();
+      fetchWatchlistPrices();
+  }
+
+  function removeFromWatchlist(ticker) {
+      watchlist = watchlist.filter(t => t !== ticker);
+      localStorage.setItem('phoenix_watchlist', JSON.stringify(watchlist));
+      renderWatchlist();
+  }
+
+  function renderWatchlist() {
+    const list = document.getElementById('wlList');
+    if (watchlist.length === 0) {
+        list.innerHTML = '<div class="wl-empty"><div class="wl-empty-icon">Phoenix</div>No tickers yet.<br>Add one above.</div>';
+        return;
+    }
+    list.innerHTML = watchlist.map((ticker, i) => `
+        <div class="wl-item" draggable="true" data-ticker="${ticker}" data-index="${i}"
+            style="animation-delay:${i * 0.05}s; cursor:grab;"
+            ondragstart="dragStart(event)"
+            ondragover="dragOver(event)"
+            ondrop="dragDrop(event)"
+            ondragend="dragEnd(event)">
+            <div class="wl-drag-handle" style="color:var(--text-3); margin-right:8px; font-size:12px; flex-shrink:0;">⠿</div>
+            <div class="wl-ticker-sym">${ticker}</div>
+            <div class="wl-ticker-price" id="wl-price-${ticker}">—</div>
+            <div class="wl-ticker-change" id="wl-change-${ticker}">—</div>
+            <button class="wl-remove" onclick="event.stopPropagation(); removeFromWatchlist('${ticker}')">✕</button>
+        </div>
+    `).join('');
+  }
+
+  async function fetchWatchlistPrices() {
+      for (const ticker of watchlist) {
+          try {
+              const res = await fetch(`/api/stats/${ticker}`);
+              const s = await res.json();
+              if (s.error) continue;
+
+              const priceEl = document.getElementById(`wl-price-${ticker}`);
+              const changeEl = document.getElementById(`wl-change-${ticker}`);
+
+              if (priceEl && s.price) priceEl.textContent = `$${s.price.toFixed(2)}`;
+              if (changeEl && s.change_pct !== null && s.change_pct !== undefined) {
+                  const pct = Math.abs(s.change_pct) > 1 ? s.change_pct.toFixed(2) : (s.change_pct * 100).toFixed(2);
+                  const sign = s.change >= 0 ? '+' : '';
+                  changeEl.textContent = `${sign}${pct}%`;
+                  changeEl.className = `wl-ticker-change ${s.change >= 0 ? 'wl-positive' : 'wl-negative'}`;
+              }
+          } catch(e) { continue; }
+      }
+  }
+
+  function loadWatchlistTicker(ticker) {
+    // disabled until Markets page is built
+  }
+
+  // Load prices when watchlist opens
+  document.getElementById('wlSidebar').addEventListener('transitionend', function() {
+      if (this.classList.contains('open')) fetchWatchlistPrices();
+  });
+
+  const COMMON_TICKERS = [
+      {sym:'SPY',name:'SPDR S&P 500 ETF'},
+      {sym:'QQQ',name:'Invesco Nasdaq 100 ETF'},
+      {sym:'AAPL',name:'Apple Inc'},
+      {sym:'NVDA',name:'NVIDIA Corporation'},
+      {sym:'MSFT',name:'Microsoft Corporation'},
+      {sym:'TSLA',name:'Tesla Inc'},
+      {sym:'AMZN',name:'Amazon.com Inc'},
+      {sym:'GOOGL',name:'Alphabet Inc'},
+      {sym:'META',name:'Meta Platforms'},
+      {sym:'AMD',name:'Advanced Micro Devices'},
+      {sym:'PLTR',name:'Palantir Technologies'},
+      {sym:'COIN',name:'Coinbase Global'},
+      {sym:'MSTR',name:'MicroStrategy'},
+      {sym:'SOFI',name:'SoFi Technologies'},
+      {sym:'RIVN',name:'Rivian Automotive'},
+      {sym:'SHOP',name:'Shopify Inc'},
+      {sym:'DIS',name:'Walt Disney Co'},
+      {sym:'NFLX',name:'Netflix Inc'},
+      {sym:'BA',name:'Boeing Co'},
+      {sym:'JPM',name:'JPMorgan Chase'},
+      {sym:'GS',name:'Goldman Sachs'},
+      {sym:'WMT',name:'Walmart Inc'},
+      {sym:'V',name:'Visa Inc'},
+      {sym:'BRK.B',name:'Berkshire Hathaway'},
+      {sym:'IWM',name:'iShares Russell 2000 ETF'},
+      {sym:'VTI',name:'Vanguard Total Stock Market'},
+      {sym:'GLD',name:'SPDR Gold Shares'},
+      {sym:'TLT',name:'iShares 20+ Year Treasury'},
+      {sym:'VIX',name:'CBOE Volatility Index'},
+      {sym:'UBER',name:'Uber Technologies'},
+      {sym:'SNOW',name:'Snowflake Inc'},
+      {sym:'CRWD',name:'CrowdStrike Holdings'},
+      {sym:'INTC',name:'Intel Corporation'},
+      {sym:'SMCI',name:'Super Micro Computer'},
+  ];
+
+  function showTickerSuggestions(val) {
+      const box = document.getElementById('wlSuggestions');
+      if (!val || val.length === 0) { box.style.display = 'none'; return; }
+
+      const filtered = COMMON_TICKERS.filter(t =>
+          t.sym.startsWith(val.toUpperCase()) ||
+          t.name.toLowerCase().includes(val.toLowerCase())
+      ).slice(0, 6);
+
+      if (filtered.length === 0) { box.style.display = 'none'; return; }
+
+      box.innerHTML = filtered.map(t => `
+          <div class="wl-suggestion" onmousedown="selectTicker('${t.sym}')">
+              <div class="wl-sug-ticker">${t.sym}</div>
+              <div class="wl-sug-name">${t.name}</div>
+          </div>
+      `).join('');
+
+      box.style.display = 'block';
+  }
+
+  function selectTicker(sym) {
+      document.getElementById('wlInput').value = sym;
+      document.getElementById('wlSuggestions').style.display = 'none';
+      addToWatchlist();
+  }
+
+  function dragStart(e) {
+      dragSrcIndex = parseInt(e.currentTarget.dataset.index);
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(dragSrcIndex));
+      setTimeout(() => e.currentTarget.style.opacity = '0.4', 0);
+  }
+
+  function dragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.wl-item').forEach(item => item.style.borderTop = '');
+      let target = e.target;
+      while (target && !target.classList.contains('wl-item')) target = target.parentElement;
+      if (target) target.style.borderTop = '2px solid var(--accent)';
+  }
+
+  function dragDrop(e) {
+    e.preventDefault();
+    let target = e.target;
+    while (target && !target.classList.contains('wl-item')) target = target.parentElement;
+    if (!target) return;
+    const targetIndex = parseInt(target.dataset.index);
+    const srcIndex = parseInt(e.dataTransfer.getData('text/plain'));
+    if (isNaN(srcIndex) || isNaN(targetIndex) || srcIndex === targetIndex) return;
+
+    // Update data array
+    const moved = watchlist.splice(srcIndex, 1)[0];
+    watchlist.splice(targetIndex, 0, moved);
+    localStorage.setItem('phoenix_watchlist', JSON.stringify(watchlist));
+
+    // Move DOM elements directly -- no re-render, no flash, prices stay
+    const list = document.getElementById('wlList');
+    const items = Array.from(list.querySelectorAll('.wl-item'));
+    const srcEl = items[srcIndex];
+    const targetEl = items[targetIndex];
+
+    srcEl.style.transition = 'transform 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease';
+    srcEl.style.opacity = '0.5';
+    srcEl.style.transform = 'scale(0.97)';
+
+    setTimeout(() => {
+        if (srcIndex < targetIndex) {
+            targetEl.after(srcEl);
+        } else {
+            targetEl.before(srcEl);
+        }
+        // Update data-index attributes
+        Array.from(list.querySelectorAll('.wl-item')).forEach((item, i) => {
+            item.dataset.index = i;
+        });
+        srcEl.style.opacity = '1';
+        srcEl.style.transform = 'scale(1)';
+    }, 150);
+  }
+
+  function dragEnd(e) {
+      document.querySelectorAll('.wl-item').forEach(item => {
+          item.style.opacity = '1';
+          item.style.borderTop = '';
+      });
+      dragSrcIndex = null;
+  }
+
 </script>
+
+<!-- WATCHLIST OVERLAY -->
+<div class="wl-overlay" id="wlOverlay" onclick="closeWatchlist()"></div>
+
+<!-- WATCHLIST SIDEBAR -->
+<div class="wl-sidebar" id="wlSidebar">
+  <div class="wl-scan-line"></div>
+  <div class="wl-header">
+    <div class="wl-title">Watch<span>list</span></div>
+    <button class="wl-close" onclick="closeWatchlist()">✕</button>
+  </div>
+  <div class="wl-add" style="position:relative;">
+    <input class="wl-input" id="wlInput" placeholder="Add ticker..." maxlength="5"
+        onkeydown="if(event.key==='Enter') addToWatchlist()"
+        oninput="showTickerSuggestions(this.value)"
+        onblur="setTimeout(()=>document.getElementById('wlSuggestions').style.display='none',200)"
+        autocomplete="off">
+    <div id="wlSuggestions" style="display:none; position:absolute; top:100%; left:0; right:0; background:var(--bg2); border:1px solid var(--border); border-radius:var(--radius-sm); z-index:500; max-height:200px; overflow-y:auto; box-shadow:var(--shadow);"></div>
+    <button class="wl-add-btn" onclick="addToWatchlist()">+ Add</button>
+  </div>
+  <div class="wl-list" id="wlList">
+    <div class="wl-empty">
+      <div class="wl-empty-icon">Phoenix</div>
+      No tickers yet.<br>Add one above.
+    </div>
+  </div>
+  <div class="wl-footer">Click any ticker to load chart & stats</div>
+</div>
+
 </body>
 </html>
