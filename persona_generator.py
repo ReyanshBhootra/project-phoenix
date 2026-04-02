@@ -46,7 +46,7 @@ def detect_news_sentiment(headline: str) -> str:
         return "MIXED/NEUTRAL"
 
 
-def generate_personas(G: nx.DiGraph, data: dict, num_personas: int = 10, headline: str = "") -> list:
+def generate_personas(G: nx.DiGraph, data: dict, num_personas: int = 10, headline: str = "", all_headlines: list = None) -> list:
     entities = [e["name"] for e in data["entities"]]
     edges = []
     id_to_name = {e["id"]: e["name"] for e in data["entities"]}
@@ -57,44 +57,56 @@ def generate_personas(G: nx.DiGraph, data: dict, num_personas: int = 10, headlin
         edges.append(f"{src_name} --[{attrs['relation']}]--> {tgt_name}")
 
     graph_summary = f"""
-Entities involved: {", ".join(entities)}
-Relationships: {chr(10).join(edges)}
+Entities involved: {", ".join(entities[:20])}
+Key relationships: {chr(10).join(edges[:15])}
 """
 
-    news_sentiment = detect_news_sentiment(headline) if headline else "MIXED/NEUTRAL"
+    # Use all headlines for richer context if provided
+    if all_headlines and len(all_headlines) > 1:
+        headlines_context = f"""
+FULL NEWS CONTEXT ({len(all_headlines)} headlines from today/yesterday):
+{chr(10).join([f'- {h}' for h in all_headlines[:10]])}
+
+Primary headline: "{headline}"
+"""
+    else:
+        headlines_context = f'Headline: "{headline}"'
+
+    # Score all headlines together for sentiment
+    combined_text = " ".join(all_headlines) if all_headlines else headline
+    news_sentiment = detect_news_sentiment(combined_text)
 
     majority = max(3, int(num_personas * 0.6))
     minority = max(1, int(num_personas * 0.15))
 
     if news_sentiment == "NEGATIVE/BEARISH":
-        stance_instruction = f"""The market event sentiment is strongly: {news_sentiment}.
-    STRICT REQUIREMENTS for initial_stance distribution:
-    - At least {majority} personas MUST start as 'bearish' 
-    - Maximum {minority} persona can be 'bullish' (contrarian only)
-    - Remaining can be 'neutral' or 'uncertain'
-    This is a REQUIREMENT, not a suggestion. Count your bearish stances before finalizing."""
-
+        stance_instruction = f"""Overall market sentiment from ALL headlines is: {news_sentiment}.
+STRICT REQUIREMENTS:
+- At least {majority} personas MUST start as 'bearish'
+- Maximum {minority} persona can be 'bullish' (contrarian only)
+- Remaining can be 'neutral' or 'uncertain'"""
     elif news_sentiment == "POSITIVE/BULLISH":
-        stance_instruction = f"""The market event sentiment is strongly: {news_sentiment}.
-    STRICT REQUIREMENTS for initial_stance distribution:
-    - At least {majority} personas MUST start as 'bullish'
-    - Maximum {minority} persona can be 'bearish' (contrarian only)
-    - Remaining can be 'neutral' or 'uncertain'
-    This is a REQUIREMENT, not a suggestion. Count your bullish stances before finalizing."""
+        stance_instruction = f"""Overall market sentiment from ALL headlines is: {news_sentiment}.
+STRICT REQUIREMENTS:
+- At least {majority} personas MUST start as 'bullish'
+- Maximum {minority} persona can be 'bearish' (contrarian only)
+- Remaining can be 'neutral' or 'uncertain'"""
     else:
-        stance_instruction = f"The market event sentiment is: {news_sentiment}. Mix stances realistically -- some bullish, some bearish, some neutral or uncertain."
+        stance_instruction = f"Overall market sentiment is: {news_sentiment}. Mix stances realistically."
 
-    prompt = f"""
-You are simulating a financial market. Based on this knowledge graph of a market event, generate {num_personas} unique trader personas who will react to this event.
+    prompt = f"""You are simulating a financial market with FULL NEWS CONTEXT.
 
-Knowledge graph:
+{headlines_context}
+
+Knowledge graph ({G.number_of_nodes()} entities, {G.number_of_edges()} relationships):
 {graph_summary}
-
-Headline context: "{headline[:200] if headline else 'Market event'}"
 
 {stance_instruction}
 
-Generate exactly {num_personas} personas. Respond ONLY with valid JSON, nothing else:
+Generate exactly {num_personas} unique trader personas who have READ ALL the news above.
+Each persona should reference specific events from the full news context in their personality/likely_action.
+
+Respond ONLY with valid JSON:
 {{
   "personas": [
     {{
@@ -105,18 +117,15 @@ Generate exactly {num_personas} personas. Respond ONLY with valid JSON, nothing 
       "risk_tolerance": "very_high",
       "portfolio_focus": "SPY options",
       "initial_stance": "bearish",
-      "personality": "impulsive, follows momentum, easily influenced by social media",
-      "likely_action": "buying put options on SPY immediately",
+      "personality": "impulsive, follows momentum, reacting to Fed news and tech selloff",
+      "likely_action": "buying put options given multiple bearish catalysts today",
       "influence_level": "low"
     }}
   ]
 }}
 
-Types to use: {", ".join(PERSONA_TYPES)}
-Risk tolerance options: low, medium, high, very_high
-Initial stance options: bullish, bearish, neutral, uncertain
-Influence level options: low, medium, high (high = opinion leader, influences others)
-Make each persona distinctly different. Use realistic names.
+Types: {", ".join(PERSONA_TYPES)}
+Make each persona distinctly different with realistic names.
 """
 
     response = client.chat.completions.create(

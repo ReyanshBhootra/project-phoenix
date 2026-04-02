@@ -1264,6 +1264,309 @@
       white-space: nowrap;
   }
 
+  /* ── EMBER CHAT ── */
+  .ember-btn {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    z-index: 500;
+    background: var(--accent);
+    border: none;
+    color: white;
+    font-family: var(--font-display);
+    font-size: 15px;
+    padding: 12px 22px;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 24px rgba(232,132,90,0.4);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: none;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.2px;
+  }
+
+  .ember-btn.visible {
+    display: flex;
+    animation: emberBtnPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes emberBtnPop {
+    from { opacity: 0; transform: scale(0.8) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .ember-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 32px rgba(232,132,90,0.5);
+  }
+
+  .ember-btn-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: white;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+
+  .ember-overlay {
+  display: none;
+  }
+
+  .ember-panel {
+    position: fixed;
+    bottom: 0; right: 0;
+    width: 420px;
+    height: 600px;
+    background: var(--bg2);
+    border: 1px solid rgba(232,132,90,0.3);
+    border-bottom: none;
+    border-right: none;
+    border-radius: 16px 0 0 0;
+    z-index: 700;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    box-shadow: -4px -4px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(232,132,90,0.1);
+  }
+
+  .ember-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .ember-panel.open {
+    transform: translateY(0);
+  }
+
+  .ember-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(232,132,90,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    background: var(--bg3);
+  }
+
+  .ember-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ember-title-text {
+    font-family: var(--font-display);
+    font-size: 17px;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .ember-title-text span { color: var(--accent); font-style: italic; }
+
+  .ember-subtitle {
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 1px;
+  }
+
+  .ember-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-3);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .ember-close:hover { border-color: var(--bearish); color: var(--bearish); }
+
+  .ember-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .ember-msg {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .ember-msg.user { align-items: flex-end; }
+  .ember-msg.assistant { align-items: flex-start; }
+
+  .ember-bubble {
+    max-width: 85%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  .ember-msg.user .ember-bubble {
+    background: var(--accent);
+    color: white;
+    border-radius: 14px 14px 4px 14px;
+  }
+
+  .ember-msg.assistant .ember-bubble {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 14px 14px 14px 4px;
+  }
+
+  .ember-msg-label {
+    font-size: 10px;
+    color: var(--text-3);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0 4px;
+  }
+
+  .ember-typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px 14px 14px 4px;
+    width: fit-content;
+  }
+
+  .ember-typing-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: typingBounce 1s ease-in-out infinite;
+  }
+
+  .ember-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+  .ember-typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes typingBounce {
+    0%, 100% { transform: translateY(0); opacity: 0.4; }
+    50% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  .ember-suggestions {
+    padding: 0 16px 8px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  .ember-sug {
+    font-size: 11px;
+    padding: 5px 10px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-2);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .ember-sug:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-softer);
+  }
+
+  .ember-input-area {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+
+  .ember-input {
+    flex: 1;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    padding: 9px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+    height: 38px;
+    max-height: 100px;
+  }
+
+  .ember-input:focus { border-color: var(--accent); }
+  .ember-input::placeholder { color: var(--text-3); }
+
+  .ember-send {
+    background: var(--accent);
+    border: none;
+    color: white;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .ember-send:hover { opacity: 0.85; transform: scale(1.05); }
+  .ember-send:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .ember-disclaimer {
+    font-size: 10px;
+    color: var(--text-3);
+    text-align: center;
+    padding: 6px 16px 10px;
+    flex-shrink: 0;
+  }
+
+  .ember-attach {
+    width: 38px; height: 38px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-size: 20px;
+    color: var(--text-2);
+    transition: all 0.2s;
+    line-height: 1;
+  }
+
+  .ember-attach:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
 
 </style>
 </head>
@@ -1397,6 +1700,9 @@
   let isDark = true;
   let lastMessageCount = 0;
   let lastStepCount = 0;
+  let emberHistory = [];
+  let emberSimData = {};
+  let emberOpen = false;
 
   function toggleTheme() {
     isDark = !isDark;
@@ -1420,6 +1726,7 @@
     document.getElementById('resultsState').classList.remove('visible');
     document.getElementById('runBtn').disabled = false;
     document.getElementById('runBtn').textContent = 'Run simulation';
+    hideEmberBtn();
   }
 
   document.getElementById('tickerInput').addEventListener('keydown', e => {
@@ -1685,6 +1992,22 @@
         document.getElementById('statusPulse').className = 'status-pulse done';
         document.getElementById('statusText').textContent = 'Complete';
         if (data.report) renderReport(data.report, data.personas);
+
+        // Pass data to Ember and show button
+        const ticker = document.getElementById('resultsTicker').textContent;
+        const statsRes = await fetch(`/api/stats/${ticker}`);
+        const statsData = await statsRes.json();
+
+        emberSimData = {
+            ticker: ticker,
+            headline: data.headline || '',
+            dominant_sentiment: data.report?.dominant_sentiment || '',
+            sentiment_breakdown: data.report?.sentiment_breakdown || {},
+            messages: data.messages || [],
+            stats: statsData
+        };
+
+        showEmberBtn();
       }
 
       if (data.status === 'error') {
@@ -1891,8 +2214,10 @@
   }
 
   // Load prices when watchlist opens
-  document.getElementById('wlSidebar').addEventListener('transitionend', function() {
-      if (this.classList.contains('open')) fetchWatchlistPrices();
+  document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('wlSidebar').addEventListener('transitionend', function() {
+          if (this.classList.contains('open')) fetchWatchlistPrices();
+      });
   });
 
   const COMMON_TICKERS = [
@@ -2022,6 +2347,210 @@
       dragSrcIndex = null;
   }
 
+  // ── EMBER ──
+
+  function openEmber() {
+    document.getElementById('emberPanel').classList.add('open');
+    emberOpen = true;
+    setTimeout(() => document.getElementById('emberInput').focus(), 400);
+  }
+
+  function closeEmber() {
+    document.getElementById('emberPanel').classList.remove('open');
+    emberOpen = false;
+  }
+
+  function showEmberBtn() {
+    document.getElementById('emberBtn').classList.add('visible');
+  }
+
+  function hideEmberBtn() {
+    document.getElementById('emberBtn').classList.remove('visible');
+    closeEmber();
+    emberHistory = [];
+    emberSimData = {};
+    document.getElementById('emberMessages').innerHTML = `
+      <div class="ember-msg assistant">
+        <div class="ember-msg-label">Ember</div>
+        <div class="ember-bubble">
+          Simulation complete. I've read everything — the personas, the signal, the live data. What do you want to know before you trade?
+        </div>
+      </div>
+    `;
+  }
+
+  function askSuggestion(el) {
+      document.getElementById('emberInput').value = el.textContent;
+      document.getElementById('emberSuggestions').style.display = 'none';
+      sendToEmber();
+    }
+
+  async function sendToEmber() {
+    const input = document.getElementById('emberInput');
+    const question = input.value.trim();
+    if (!question && !emberImage) return;
+
+    const displayQuestion = question || 'Analyzing this image...';
+    input.value = '';
+    input.style.height = '38px';
+
+    const userEl = document.createElement('div');
+    userEl.className = 'ember-msg user';
+    const imgPreview = emberImage ? `<img src="data:image/jpeg;base64,${emberImage}" style="height:48px; border-radius:8px; margin-bottom:6px; border:1px solid rgba(255,255,255,0.2); display:block;">` : '';
+    userEl.innerHTML = `
+      <div class="ember-msg-label">You</div>
+      <div class="ember-bubble" style="display:flex; flex-direction:column; align-items:flex-end;">
+        ${imgPreview}
+        <span>${displayQuestion}</span>
+      </div>
+    `;
+    document.getElementById('emberMessages').appendChild(userEl);
+    scrollEmber();
+
+    showEmberTyping();
+    document.getElementById('emberSend').disabled = true;
+
+    try {
+      let finalQuestion = question;
+
+      if (emberImage) {
+        const imgRes = await fetch('/api/ember/analyze-image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: emberImage, question })
+        });
+        const imgData = await imgRes.json();
+        if (imgData.analysis) {
+          finalQuestion = `User uploaded a trading screenshot. Here's what's in it: ${imgData.analysis}. User's question: ${question || 'Does this position make sense given the current simulation signal?'}`;
+        }
+        clearEmberImage();
+      }
+
+      const res = await fetch('/api/ember', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: finalQuestion,
+          simulation_data: emberSimData,
+          conversation_history: emberHistory
+        })
+      });
+
+      const data = await res.json();
+      let response = data.response || 'Ember encountered an error.';
+
+      const fetchMatch = response.match(/FETCH_OPTIONS:\s*(\{.*?\})/s);
+      if (fetchMatch) {
+        try {
+          const fetchParams = JSON.parse(fetchMatch[1]);
+          response = response.replace(/FETCH_OPTIONS:\s*\{.*?\}/s, '').trim();
+
+          hideEmberTyping();
+          showEmberTyping();
+
+          const chainRes = await fetch(`/api/options-chain?ticker=${fetchParams.ticker}&expiration=${fetchParams.expiration}`);
+          const chainData = await chainRes.json();
+
+          if (chainData.chain) {
+            const finalRes = await fetch('/api/ember', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                question: `Here is the real live options chain data for ${fetchParams.ticker} expiring ${fetchParams.expiration}:\n\n${chainData.chain}\n\nNow give the complete signal with real prices from this chain.`,
+                simulation_data: emberSimData,
+                conversation_history: [...emberHistory,
+                  { role: 'user', content: finalQuestion },
+                  { role: 'assistant', content: response }
+                ]
+              })
+            });
+            const finalData = await finalRes.json();
+            response = finalData.response || response;
+          }
+        } catch(e) {
+          console.error('Options chain fetch error:', e);
+        }
+      }
+
+      hideEmberTyping();
+      addEmberMessage('assistant', response);
+
+      emberHistory.push({ role: 'user', content: displayQuestion });
+      emberHistory.push({ role: 'assistant', content: response });
+      if (emberHistory.length > 10) emberHistory = emberHistory.slice(-10);
+
+    } catch(e) {
+      hideEmberTyping();
+      addEmberMessage('assistant', 'Connection error. Try again.');
+    }
+
+    document.getElementById('emberSend').disabled = false;
+  }
+
+  function addEmberMessage(role, content) {
+    const el = document.createElement('div');
+    el.className = `ember-msg ${role}`;
+    const label = role === 'user' ? 'You' : 'Ember';
+    // Convert newlines to <br> and preserve formatting
+    const formatted = content
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>')
+      .replace(/🔥 EMBER SIGNAL/g, '<strong>🔥 EMBER SIGNAL</strong>');
+    el.innerHTML = `
+      <div class="ember-msg-label">${label}</div>
+      <div class="ember-bubble">${formatted}</div>
+    `;
+    document.getElementById('emberMessages').appendChild(el);
+    scrollEmber();
+  }
+
+  function scrollEmber() {
+    const msgs = document.getElementById('emberMessages');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  let emberImage = null;
+
+  function handleEmberImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      emberImage = ev.target.result.split(',')[1]; // base64
+      document.getElementById('emberPreviewImg').src = ev.target.result;
+      document.getElementById('emberImagePreview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearEmberImage() {
+    emberImage = null;
+    document.getElementById('emberImageInput').value = '';
+    document.getElementById('emberImagePreview').style.display = 'none';
+  }
+
+  function showEmberTyping() {
+    const existing = document.getElementById('emberTyping');
+    if (existing) return;
+    const typingEl = document.createElement('div');
+    typingEl.className = 'ember-msg assistant';
+    typingEl.id = 'emberTyping';
+    typingEl.innerHTML = `
+      <div class="ember-msg-label">Ember</div>
+      <div class="ember-typing">
+        <div class="ember-typing-dot"></div>
+        <div class="ember-typing-dot"></div>
+        <div class="ember-typing-dot"></div>
+      </div>
+    `;
+    document.getElementById('emberMessages').appendChild(typingEl);
+    scrollEmber();
+  }
+
+  function hideEmberTyping() {
+    document.getElementById('emberTyping')?.remove();
+  }
 </script>
 
 <!-- WATCHLIST OVERLAY -->
@@ -2051,6 +2580,59 @@
   </div>
   <div class="wl-footer">Click any ticker to load chart & stats</div>
 </div>
+<!-- EMBER BUTTON -->
+<button class="ember-btn" id="emberBtn" onclick="openEmber()">
+  <div class="ember-btn-dot"></div>
+  Ask Ember
+</button>
 
+<!-- EMBER OVERLAY -->
+<div class="ember-overlay" id="emberOverlay"></div>
+
+<!-- EMBER PANEL -->
+<div class="ember-panel" id="emberPanel">
+  <div class="ember-header">
+    <div class="ember-title">
+      <div>
+        <div class="ember-title-text"><span>Ember</span> — AI Analyst</div>
+        <div class="ember-subtitle">Powered by simulation context</div>
+      </div>
+    </div>
+    <button class="ember-close" onclick="closeEmber()">✕</button>
+  </div>
+
+  <div class="ember-messages" id="emberMessages">
+    <div class="ember-msg assistant">
+      <div class="ember-msg-label">Ember</div>
+      <div class="ember-bubble">
+        Simulation complete. I've read everything — the personas, the signal, the live data. What do you want to know before you trade?
+      </div>
+    </div>
+  </div>
+
+  <div class="ember-suggestions" id="emberSuggestions">
+    <div class="ember-sug" onclick="askSuggestion(this)">Best entry point?</div>
+    <div class="ember-sug" onclick="askSuggestion(this)">Options play for this?</div>
+    <div class="ember-sug" onclick="askSuggestion(this)">Futures setup?</div>
+    <div class="ember-sug" onclick="askSuggestion(this)">How confident is this signal?</div>
+    <div class="ember-sug" onclick="askSuggestion(this)">What's the risk here?</div>
+  </div>
+
+  <div class="ember-input-area">
+    <label class="ember-attach" title="Attach screenshot">
+      <input type="file" id="emberImageInput" accept="image/*" style="display:none" onchange="handleEmberImage(event)">
+      <span>+</span>
+    </label>
+    <textarea class="ember-input" id="emberInput" placeholder="Ask Ember anything about this trade..." rows="1"
+      onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); sendToEmber(); }"></textarea>
+    <button class="ember-send" id="emberSend" onclick="sendToEmber()">↑</button>
+  </div>
+  <div id="emberImagePreview" style="display:none; padding: 0 16px 8px;">
+    <div style="position:relative; display:inline-block;">
+      <img id="emberPreviewImg" style="height:60px; border-radius:8px; border:1px solid var(--border);">
+      <button onclick="clearEmberImage()" style="position:absolute;top:-6px;right:-6px;background:var(--bearish);border:none;color:white;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

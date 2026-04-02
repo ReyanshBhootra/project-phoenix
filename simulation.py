@@ -111,28 +111,39 @@ async def run_persona_async(
     persona: dict,
     headline: str,
     recent_activity: str,
-    current_stance: str
+    current_stance: str,
+    all_headlines: list = None
 ) -> dict:
     model = get_model_for_persona(persona["type"])
 
-    prompt = f"""
-You are {persona["name"]}, a {persona["type"].replace("_", " ")} trader.
+    # Build full news context
+    if all_headlines and len(all_headlines) > 1:
+        news_context = f"""You are aware of ALL these market developments today:
+{chr(10).join([f'- {h}' for h in all_headlines[:8]])}
+
+Primary headline driving this simulation: "{headline}"
+"""
+    else:
+        news_context = f'The market news is: "{headline}"'
+
+    prompt = f"""You are {persona["name"]}, a {persona["type"].replace("_", " ")} trader.
 Your personality: {persona["personality"]}
 Your risk tolerance: {persona["risk_tolerance"]}
 Your portfolio focus: {persona["portfolio_focus"]}
 Your current stance: {current_stance}
 
-The market news is: "{headline}"
+{news_context}
 
 Recent activity from other traders:
 {recent_activity}
 
-Based on your personality and what others are saying, respond with a short 1-2 sentence market opinion or reaction.
-Be authentic to your character. You can be influenced by others or double down on your stance.
+Based on your personality, ALL the news context above, and what others are saying, respond with a short 1-2 sentence market opinion.
+Be specific -- reference actual events from the news, not generic statements.
+You can be influenced by others or double down on your stance.
 
 Respond ONLY with valid JSON:
 {{
-  "message": "your reaction here",
+  "message": "your specific reaction referencing actual news events",
   "updated_stance": "MUST be exactly one of: bullish, bearish, neutral, uncertain",
   "influenced_by": "name of who influenced you or null"
 }}
@@ -158,8 +169,7 @@ Respond ONLY with valid JSON:
             }
         }
 
-
-async def run_simulation_async(personas: list, headline: str, rounds: int = 3) -> list:
+async def run_simulation_async(personas: list, headline: str, rounds: int = 3, all_headlines: list = None) -> list:
     messages_log = []
     sentiment_tracker = {p["id"]: p["initial_stance"] for p in personas}
 
@@ -192,7 +202,8 @@ async def run_simulation_async(personas: list, headline: str, rounds: int = 3) -
                     persona,
                     headline,
                     recent_activity,
-                    sentiment_tracker[persona["id"]]
+                    sentiment_tracker[persona["id"]],
+                    all_headlines
                 )
                 for persona in personas
             ]
@@ -227,8 +238,8 @@ async def run_simulation_async(personas: list, headline: str, rounds: int = 3) -
     return messages_log
 
 
-def run_simulation(personas: list, headline: str, rounds: int = 3) -> list:
-    return asyncio.run(run_simulation_async(personas, headline, rounds))
+def run_simulation(personas: list, headline: str, rounds: int = 3, all_headlines: list = None) -> list:
+    return asyncio.run(run_simulation_async(personas, headline, rounds, all_headlines))
 
 
 def calculate_sentiment(messages_log: list) -> dict:

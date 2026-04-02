@@ -5,12 +5,13 @@ import threading
 import queue
 import json
 import os
-from price_feed import get_snapshot
+from price_feed import get_snapshot, get_options_chain_multi
+from ember import ask_ember
 
 
 
-from news_fetcher import get_latest_news
-from graph_builder import extract_entities_and_relations, build_graph
+from news_fetcher import get_latest_news, get_all_news
+from graph_builder import extract_entities_and_relations, build_graph, build_unified_graph
 from persona_generator import generate_personas
 from simulation import run_simulation, calculate_sentiment
 
@@ -41,41 +42,49 @@ def run_pipeline_async(run_id: str, ticker: str, num_personas: int, rounds: int)
     try:
         simulation_results[run_id] = {"status": "running", "steps": [], "messages": [], "report": None}
 
+        # Step 1 -- Fetch ALL news from today + yesterday
         simulation_results[run_id]["steps"].append(f"Fetching latest {ticker} news...")
-        articles = get_latest_news(ticker, max_articles=5)
+        from news_fetcher import get_all_news
+        articles = get_all_news(ticker, max_articles=12)
 
         if not articles:
             simulation_results[run_id]["status"] = "error"
             simulation_results[run_id]["error"] = "No news found"
             return
 
-        selected = articles[0]
-        headline = selected["title"]
-        if selected["summary"]:
-            headline = headline + ". " + selected["summary"][:200]
+        # Primary headline + all headlines for context
+        primary = articles[0]
+        all_headlines = [a["title"] for a in articles]
+        headline = primary["title"]
+        if primary["summary"]:
+            headline = headline + ". " + primary["summary"][:200]
 
-        simulation_results[run_id]["headline"] = selected["title"]
-        simulation_results[run_id]["source"] = selected["source"]
-        simulation_results[run_id]["steps"].append(f"Found headline: {selected['title']}")
+        simulation_results[run_id]["headline"] = primary["title"]
+        simulation_results[run_id]["source"] = primary["source"]
+        simulation_results[run_id]["steps"].append(f"Found headline: {primary['title']}")
 
-        simulation_results[run_id]["steps"].append("Building knowledge graph...")
-        data = extract_entities_and_relations(headline)
-        G = build_graph(data)
+        # Step 2 -- Build unified knowledge graph from ALL headlines
+        simulation_results[run_id]["steps"].append(f"Building knowledge graph from {len(all_headlines)} headlines...")
+        from graph_builder import build_unified_graph
+        G, graph_data = build_unified_graph(all_headlines)
         simulation_results[run_id]["graph"] = {
             "nodes": [{"id": n, **d} for n, d in G.nodes(data=True)],
-            "edges": data["relationships"]
+            "edges": graph_data["relationships"]
         }
         simulation_results[run_id]["steps"].append(f"Graph built: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
 
+        # Step 3 -- Generate personas with full context
         simulation_results[run_id]["steps"].append(f"Generating {num_personas} trader personas...")
-        personas = generate_personas(G, data, num_personas=num_personas, headline=headline)
+        personas = generate_personas(G, graph_data, num_personas=num_personas, headline=headline, all_headlines=all_headlines)
         simulation_results[run_id]["personas"] = personas
         simulation_results[run_id]["steps"].append("Personas generated")
 
+        # Step 4 -- Run simulation with full headlines context
         simulation_results[run_id]["steps"].append("Running simulation...")
-        messages_log = run_simulation(personas, headline, rounds=rounds)
+        messages_log = run_simulation(personas, headline, rounds=rounds, all_headlines=all_headlines)
         simulation_results[run_id]["messages"] = messages_log
 
+        # Step 5 -- Calculate sentiment
         sentiment = calculate_sentiment(messages_log)
         simulation_results[run_id]["report"] = sentiment
         simulation_results[run_id]["status"] = "complete"
@@ -176,6 +185,79 @@ def get_stats(ticker):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/ember', methods=['POST'])
+def ember_chat():
+    try:
+        data = request.json
+        question = data.get('question', '')
+        simulation_data = data.get('simulation_data', {})
+        conversation_history = data.get('conversation_history', [])
+
+        if not question:
+            return jsonify({"error": "No question provided"}), 400
+
+        # Fetch live options chain if trading related question
+        options_keywords = ['option', 'call', 'put', 'strike', 'expir', 'premium', 'signal', 'entry', 'trade']
+        if any(kw in question.lower() for kw in options_keywords):
+            ticker = simulation_data.get('ticker', 'SPY')
+            chain = get_options_chain_multi(ticker, num_expirations=4)
+            if chain:
+                simulation_data['options_chain'] = chain
+
+        response = ask_ember(question, simulation_data, conversation_history)
+        return jsonify({"response": response})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/ember/analyze-image', methods=['POST'])
+def analyze_image():
+    try:
+        data = request.json
+        image_base64 = data.get('image')
+        question = data.get('question', 'What trading position is shown?')
+
+        if not image_base64:
+            return jsonify({"error": "No image provided"}), 400
+
+        from groq import Groq
+        groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+        message = groq_client.chat.completions.create(
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{image_base64}"
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "text": f"Analyze this trading screenshot. Extract: ticker, position type, entry price, current price, P&L, strike, expiration, quantity. Be specific and concise. User question: {question}"
+                        }
+                    ]
+                }
+            ],
+            max_tokens=400
+        )
+
+        return jsonify({"analysis": message.choices[0].message.content})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/options-chain', methods=['GET'])
+def options_chain_endpoint():
+    try:
+        ticker = request.args.get('ticker', 'SPY').upper()
+        expiration = request.args.get('expiration', None)
+        chain = get_options_chain_multi(ticker, num_expirations=4)
+        return jsonify({"chain": chain})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     os.makedirs('static', exist_ok=True)
