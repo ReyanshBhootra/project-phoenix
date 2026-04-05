@@ -16,7 +16,7 @@ Not another chatbot. Not another screener. A simulation engine.
 
 ## How it works
 
-1. Enter a ticker — SPY, AAPL, NVDA, anything
+1. Enter a ticker —> SPY, AAPL, NVDA, anything
 2. Phoenix fetches the top 12 headlines from today and yesterday, scored by market impact
 3. Entities and relationships are extracted from all headlines in parallel and merged into one unified knowledge graph
 4. Five AI trader personas are generated — each sees the full graph as context
@@ -28,17 +28,17 @@ Not another chatbot. Not another screener. A simulation engine.
 
 ## What makes it different
 
-**Multi-headline knowledge graph** — most tools react to one headline. Phoenix processes 12 simultaneously, builds a unified graph with 39+ nodes and 33+ edges, and gives every persona full market context.
+**Multi-headline knowledge graph** —> most tools react to one headline. Phoenix processes 12 simultaneously, builds a unified graph with 39+ nodes and 33+ edges, and gives every persona full market context.
 
-**Multimodel architecture** — WSB traders run on fast impulsive models. Institutional analysts run on careful reasoning models. Each persona genuinely thinks differently.
+**Multimodel architecture** —> WSB traders run on fast impulsive models. Institutional analysts run on careful reasoning models. Each persona genuinely thinks differently.
 
-**Real options chain data** — Ember pulls live bid/ask prices from yfinance. Never guesses premiums.
+**Real options chain data** —> Ember pulls live bid/ask prices from yfinance. Never guesses premiums.
 
-**45x faster than sequential** — async parallel simulation runs all personas simultaneously each round. What took 90 seconds now takes 2.
+**45x faster than sequential** —> async parallel simulation runs all personas simultaneously each round. What took 90 seconds now takes 2.
 
-**73% directional accuracy** — backtested across 15 historical market events.
+**73% directional accuracy** —> backtested across 15 historical market events.
 
-**Interactive knowledge graph** — D3.js force-directed visualization showing how news entities connect and influence each other. Drag nodes, zoom, hover for relationships.
+**Interactive knowledge graph** —> D3.js force-directed visualization showing how news entities connect and influence each other. Drag nodes, zoom, hover for relationships.
 
 ---
 
