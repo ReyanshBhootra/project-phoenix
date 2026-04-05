@@ -47,7 +47,8 @@ def parse_raw_response(raw: str) -> dict:
             raw = raw[start:end]
 
     if not raw:
-        return {"message": "Holding current position.", "updated_stance": "neutral", "influenced_by": None}
+        return {"message": "Weighing the conflicting signals in today's market data.", "updated_stance": "neutral",
+                "influenced_by": None}
 
     try:
         return json.loads(raw)
@@ -59,7 +60,8 @@ def parse_raw_response(raw: str) -> dict:
                 return json.loads(raw[start:end])
         except:
             pass
-        return {"message": "Analyzing market conditions.", "updated_stance": "neutral", "influenced_by": None}
+        return {"message": "Reassessing my position based on the latest developments.", "updated_stance": "neutral",
+                "influenced_by": None}
 
 
 def normalize_stance(result: dict) -> str:
@@ -141,9 +143,11 @@ Based on your personality, ALL the news context above, and what others are sayin
 Be specific -- reference actual events from the news, not generic statements.
 You can be influenced by others or double down on your stance.
 
+IMPORTANT: Write a unique specific 1-2 sentence reaction EVERY round. NEVER say "Holding position." Always reference specific news events, data points, or other traders by name. Your thinking must EVOLVE each round.
+
 Respond ONLY with valid JSON:
 {{
-  "message": "your specific reaction referencing actual news events",
+  "message": "your specific 1-2 sentence reaction referencing actual news and other traders",
   "updated_stance": "MUST be exactly one of: bullish, bearish, neutral, uncertain",
   "influenced_by": "name of who influenced you or null"
 }}
@@ -254,15 +258,14 @@ def calculate_sentiment(messages_log: list) -> dict:
 
     total = len(final_messages)
     percentages = {}
-    remaining = 100
-    items = sorted(counts.items(), key=lambda x: x[1], reverse=True)
-    for i, (k, v) in enumerate(items):
-        if i == len(items) - 1:
-            percentages[k] = remaining
-        else:
-            pct = round((v / total) * 100)
-            percentages[k] = pct
-            remaining -= pct
+    for k, v in counts.items():
+        percentages[k] = round((v / total) * 100) if v > 0 else 0
+
+    # Fix rounding so total = 100
+    diff = 100 - sum(percentages.values())
+    if diff != 0:
+        biggest = max(percentages, key=percentages.get)
+        percentages[biggest] += diff
 
     dominant = max(counts, key=counts.get)
 

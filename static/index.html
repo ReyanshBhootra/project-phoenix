@@ -478,9 +478,9 @@
 
   /* ── MAIN GRID ── */
   .main-grid {
-    display: grid;
-    grid-template-columns: 240px 1fr 280px;
-    min-height: 70vh;
+  display: grid;
+  grid-template-columns: 320px 1fr 280px;
+  min-height: 70vh;
   }
 
   .panel {
@@ -881,9 +881,14 @@
     border-radius: var(--radius);
     padding: 14px 16px;
     margin-bottom: 8px;
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    opacity: 0;
-    animation: cardSlideIn 0.45s ease forwards;
+    transition: border-color 0.2s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+    opacity: 1;
+  }
+
+  .agent-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
   }
 
   @keyframes cardSlideIn {
@@ -1568,7 +1573,126 @@
     color: var(--accent);
   }
 
+  /* ── D3 KNOWLEDGE GRAPH ── */
+  #graphSvg {
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+
+  #graphSvg:active { cursor: grabbing; }
+
+  .graph-panel {
+    position: relative;
+    overflow: hidden;
+    padding: 0 !important;
+    height: calc(100vh - 56px);
+    min-height: 600px;
+    position: sticky;
+    top: 56px;
+    align-self: start;
+  }
+
+  .graph-panel-header {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .graph-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+  }
+
+  .graph-legend-item { color: var(--text-2); }
+  .graph-node-count { color: var(--text-3); }
+
+  .graph-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--text-2);
+  }
+
+  .graph-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .graph-node-count {
+    font-size: 10px;
+    color: var(--text-3);
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .graph-tooltip {
+    position: absolute;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    max-width: 200px;
+    z-index: 20;
+    box-shadow: var(--shadow);
+  }
+
+  .graph-tooltip.visible { opacity: 1; }
+  .graph-tooltip-name { font-weight: 500; margin-bottom: 2px; }
+  .graph-tooltip-type { color: var(--text-3); text-transform: uppercase; font-size: 10px; letter-spacing: 0.06em; }
+  .graph-tooltip-rel { color: var(--accent); font-style: italic; margin-top: 4px; font-size: 10px; }
+
+  #heroCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  .hero { position: relative; z-index: 1; }
+  header { z-index: 200; }
+
+  .hero { position: relative; overflow: hidden; }
+
+  .sv-bullish { filter: drop-shadow(0 0 24px rgba(92,173,126,0.6)); }
+  .sv-bearish { filter: drop-shadow(0 0 24px rgba(224,92,92,0.6)); }
+  .sv-neutral { filter: drop-shadow(0 0 24px rgba(196,149,74,0.6)); }
+  .sv-uncertain { filter: drop-shadow(0 0 24px rgba(123,143,189,0.6)); }
+
+  .stat-item {
+    transition: background 0.2s, transform 0.2s;
+    cursor: default;
+  }
+  .stat-item:hover {
+    background: var(--bg3);
+    transform: translateY(-1px);
+  }
 </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 </head>
 <body>
 
@@ -1587,6 +1711,7 @@
 
 <!-- ══ HERO ══ -->
 <div class="hero" id="heroState">
+  <canvas id="heroCanvas"></canvas>
   <div class="hero-eyebrow">Market Intelligence</div>
   <h1 class="hero-title">Before you trade,<br><em>simulate</em> the reaction.</h1>
   <p class="hero-sub">Phoenix spawns AI trader personas that react to live market news — delivering a sentiment signal before you place a trade.</p>
@@ -1658,11 +1783,20 @@
     <div class="main-grid">
 
       <!-- LEFT: Knowledge graph -->
-      <div class="panel">
-        <div class="panel-label">Knowledge graph</div>
-        <div class="shimmer" id="graphShimmer" style="display:none"><div class="shimmer-fill"></div></div>
-        <div id="graphNodes"></div>
-        <div id="graphEdges" style="margin-top:10px"></div>
+      <div class="panel graph-panel" id="graphPanel">
+        <div class="graph-panel-header">
+          <div class="graph-node-count" id="graphNodeCount">Knowledge Graph</div>
+          <div class="graph-legend" id="graphLegend" style="display:none">
+            <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#7b8fbd"></div>Organization</div>
+            <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#5cad7e"></div>Market</div>
+            <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#c4954a"></div>Economic</div>
+            <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#e8845a"></div>Person</div>
+            <div class="graph-legend-item"><div class="graph-legend-dot" style="background:#e05c5c"></div>Event</div>
+          </div>
+        </div>
+        <div class="shimmer" id="graphShimmer" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:80%;"><div class="shimmer-fill"></div></div>
+        <div class="graph-tooltip" id="graphTooltip"></div>
+        <svg id="graphSvg"></svg>
       </div>
 
       <!-- CENTER: Agent feed -->
@@ -1821,6 +1955,7 @@
 
         setTimeout(() => {
             bar.classList.add('revealed');
+            animateStatsBar();
             const heroEl = document.getElementById('heroPriceVal');
             if (heroEl && s.price) {
                 const target = s.price;
@@ -1900,9 +2035,12 @@
     document.getElementById('statsBar').classList.remove('revealed');
     document.getElementById('statusText').textContent = 'Simulating';
     document.getElementById('stepsBar').innerHTML = '';
-    document.getElementById('graphNodes').innerHTML = '';
-    document.getElementById('graphEdges').innerHTML = '';
+    const svgEl = document.getElementById('graphSvg');
+    if (svgEl) d3.select('#graphSvg').selectAll('*').remove();
+    document.getElementById('graphNodeCount').textContent = 'Knowledge Graph';
+    document.getElementById('graphLegend').style.display = 'none';
     document.getElementById('agentFeed').innerHTML = '<div class="empty"><div class="empty-icon">Simulating</div>Agent reactions will appear here</div>';
+    document.getElementById('reportContent').innerHTML = '<div class="empty"><div class="empty-icon">Awaiting</div>Results after simulation</div>';
     document.getElementById('reportContent').innerHTML = '<div class="empty"><div class="empty-icon">Awaiting</div>Results after simulation</div>';
     document.getElementById('feedShimmer').style.display = 'block';
     document.getElementById('graphShimmer').style.display = 'none';
@@ -1920,6 +2058,7 @@
     // Reveal sim section after chart animates in
     setTimeout(() => {
       document.getElementById('simSection').classList.add('revealed');
+      animateTickerBar();
     }, 400);
 
     try {
@@ -1991,7 +2130,11 @@
         document.getElementById('runBtn').textContent = 'Run simulation';
         document.getElementById('statusPulse').className = 'status-pulse done';
         document.getElementById('statusText').textContent = 'Complete';
-        if (data.report) renderReport(data.report, data.personas);
+        if (data.report) {
+          renderReport(data.report, data.personas);
+          animateSignal();
+          setTimeout(initScrollAnimations, 300);
+        }
 
         // Pass data to Ember and show button
         const ticker = document.getElementById('resultsTicker').textContent;
@@ -2022,52 +2165,286 @@
     } catch(e) { console.error(e); }
   }
 
-  function renderGraph(graph) {
-    const nodesEl = document.getElementById('graphNodes');
-    const edgesEl = document.getElementById('graphEdges');
-    nodesEl.innerHTML = '';
-    edgesEl.innerHTML = '';
+  let graphSimulation = null;
 
-    const typeClass = {
-      organization: 'nb-org',
-      market_instrument: 'nb-market',
-      economic_concept: 'nb-econ',
-      person: 'nb-person',
-      event: 'nb-event'
+  function renderGraph(graph) {
+    if (!graph.nodes || graph.nodes.length === 0) return;
+
+    const svg = d3.select('#graphSvg');
+    svg.selectAll('*').remove();
+
+    const container = document.getElementById('graphPanel');
+    const width = container.offsetWidth || 280;
+    const height = container.offsetHeight || 600;
+    svg.style('width', '100%').style('height', '100%');
+    svg.attr('width', width).attr('height', height);
+
+    svg.attr('viewBox', `0 0 ${width} ${height}`);
+
+    // Show legend
+    document.getElementById('graphLegend').style.display = 'flex';
+    document.getElementById('graphNodeCount').textContent = `${graph.nodes.length} nodes · ${graph.edges.length} edges`;
+
+    const colors = {
+      organization: '#7b8fbd',
+      market_instrument: '#5cad7e',
+      economic_concept: '#c4954a',
+      person: '#e8845a',
+      event: '#e05c5c',
+      monetary_value: '#9b7bd4'
     };
 
-    graph.nodes.forEach((node, i) => {
-      const el = document.createElement('div');
-      el.className = 'graph-node';
-      el.style.animationDelay = `${i * 0.06}s`;
-      el.innerHTML = `<span class="node-badge ${typeClass[node.type] || 'nb-org'}">${node.type.replace('_',' ')}</span><span class="node-name">${node.name}</span>`;
-      nodesEl.appendChild(el);
+    // Build node id -> node map
+    const nodeMap = {};
+    graph.nodes.forEach(n => nodeMap[n.id] = n);
+
+    // Filter valid edges
+    const validEdges = graph.edges.filter(e => nodeMap[e.source] && nodeMap[e.target]);
+    // Filter to only show nodes that have at least one connection
+    const connectedNodeIds = new Set();
+    validEdges.forEach(e => {
+      connectedNodeIds.add(e.source.id || e.source);
+      connectedNodeIds.add(e.target.id || e.target);
     });
 
-    if (graph.edges.length > 0) {
-      const label = document.createElement('div');
-      label.className = 'panel-label';
-      label.style.marginTop = '12px';
-      label.textContent = 'Relationships';
-      edgesEl.appendChild(label);
+// Keep isolated nodes but push them to periphery
+const connectedNodes = graph.nodes.filter(n => connectedNodeIds.has(n.id));
+const isolatedNodes = graph.nodes.filter(n => !connectedNodeIds.has(n.id));
 
-      graph.edges.forEach((edge, i) => {
-        const src = graph.nodes.find(n => n.id === edge.source);
-        const tgt = graph.nodes.find(n => n.id === edge.target);
-        if (src && tgt) {
-          const el = document.createElement('div');
-          el.className = 'graph-edge';
-          el.style.animationDelay = `${i * 0.08}s`;
-          el.innerHTML = `<span class="edge-source">${src.name}</span><span class="edge-rel">${edge.relation}</span><span class="edge-target">${tgt.name}</span>`;
-          edgesEl.appendChild(el);
-        }
+    // D3 zoom
+    const zoom = d3.zoom()
+      .scaleExtent([0.3, 3])
+      .on('zoom', (event) => {
+        g.attr('transform', event.transform);
       });
-    }
-  }
+
+    svg.call(zoom);
+
+    const g = svg.append('g');
+
+
+    // Arrow marker
+    svg.append('defs').append('marker')
+      .attr('id', 'arrow')
+      .attr('viewBox', '0 -4 8 8')
+      .attr('refX', 18)
+      .attr('refY', 0)
+      .attr('markerWidth', 6)
+      .attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('path')
+      .attr('d', 'M0,-4L8,0L0,4')
+      .attr('fill', 'rgba(232,132,90,0.4)');
+
+    // Force simulation
+    if (graphSimulation) graphSimulation.stop();
+
+    graphSimulation = d3.forceSimulation(graph.nodes)
+      .force('link', d3.forceLink(validEdges)
+        .id(d => d.id)
+        .distance(120)
+        .strength(0.4)
+      )
+      .force('charge', d3.forceManyBody()
+        .strength(d => connectedNodeIds.has(d.id) ? -400 : -60)
+      )
+      .force('center', d3.forceCenter(width / 2, height / 2).strength(0.1))
+      .force('collision', d3.forceCollide().radius(50))
+      .force('x', d3.forceX(width / 2).strength(0.08))
+      .force('y', d3.forceY(height / 2).strength(0.08))
+      .force('radial', d3.forceRadial(
+        d => connectedNodeIds.has(d.id) ? 0 : Math.min(width, height) * 0.35,
+        width / 2,
+        height / 2
+      ).strength(d => connectedNodeIds.has(d.id) ? 0 : 1.2));
+
+    // Draw edges
+    const link = g.append('g')
+      .selectAll('line')
+      .data(validEdges)
+      .join('line')
+      .attr('stroke', 'rgba(232,132,90,0.25)')
+      .attr('stroke-width', 1.5)
+      .attr('marker-end', 'url(#arrow)');
+
+    // Edge labels (hidden by default, shown on hover)
+    const edgeLabel = g.append('g')
+      .selectAll('text')
+      .data(validEdges)
+      .join('text')
+      .attr('font-size', 9)
+      .attr('fill', 'var(--accent)')
+      .attr('text-anchor', 'middle')
+      .attr('opacity', 0)
+      .attr('font-family', 'DM Sans, sans-serif')
+      .text(d => d.relation);
+
+    // Draw nodes
+    const node = g.append('g')
+      .selectAll('g')
+      .data(graph.nodes)
+      .join('g')
+      .attr('cursor', 'pointer')
+      .call(d3.drag()
+        .on('start', (event, d) => {
+          if (!event.active) graphSimulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
+        })
+        .on('drag', (event, d) => {
+          d.fx = event.x;
+          d.fy = event.y;
+        })
+        .on('end', (event, d) => {
+          if (!event.active) graphSimulation.alphaTarget(0);
+          d.fx = null;
+          d.fy = null;
+        })
+      );
+
+    // Node circles
+      node.append('circle')
+      .attr('r', d => {
+        const connections = validEdges.filter(e =>
+          (e.source.id || e.source) === d.id ||
+          (e.target.id || e.target) === d.id
+        ).length;
+        return connectedNodeIds.has(d.id) ? Math.min(8 + connections * 3, 22) : 5;
+      })
+      .attr('fill', d => colors[d.type] || '#7b8fbd')
+      .attr('stroke', 'var(--bg)')
+      .attr('stroke-width', 2)
+      .attr('opacity', d => connectedNodeIds.has(d.id) ? 0.9 : 0.35);
+
+    // Node labels
+    node.append('text')
+      .attr('dy', d => {
+        const connections = validEdges.filter(e =>
+          (e.source.id || e.source) === d.id ||
+          (e.target.id || e.target) === d.id
+        ).length;
+        return Math.min(6 + connections * 2, 18) + 12;
+      })
+      .attr('text-anchor', 'middle')
+      .attr('font-size', 9)
+      .attr('fill', 'var(--text-2)')
+      .attr('font-family', 'DM Sans, sans-serif')
+      .attr('opacity', d => connectedNodeIds.has(d.id) ? 1 : 0.3)
+      .text(d => d.name.length > 18 ? d.name.substring(0, 16) + '…' : d.name);
+
+    // Tooltip
+    const tooltip = document.getElementById('graphTooltip');
+
+    node
+      .on('mouseenter', (event, d) => {
+        // Highlight connected edges
+        const connectedIds = new Set();
+        validEdges.forEach(e => {
+          const srcId = e.source.id || e.source;
+          const tgtId = e.target.id || e.target;
+          if (srcId === d.id || tgtId === d.id) {
+            connectedIds.add(srcId);
+            connectedIds.add(tgtId);
+          }
+        });
+
+        link.attr('opacity', e => {
+          const srcId = e.source.id || e.source;
+          const tgtId = e.target.id || e.target;
+          return (srcId === d.id || tgtId === d.id) ? 1 : 0.1;
+        }).attr('stroke-width', e => {
+          const srcId = e.source.id || e.source;
+          const tgtId = e.target.id || e.target;
+          return (srcId === d.id || tgtId === d.id) ? 2.5 : 1.5;
+        });
+
+        edgeLabel.attr('opacity', e => {
+          const srcId = e.source.id || e.source;
+          const tgtId = e.target.id || e.target;
+          return (srcId === d.id || tgtId === d.id) ? 1 : 0;
+        });
+
+        node.attr('opacity', n => connectedIds.has(n.id) || n.id === d.id ? 1 : 0.3);
+
+        // Show tooltip
+        const relations = validEdges
+          .filter(e => (e.source.id || e.source) === d.id || (e.target.id || e.target) === d.id)
+          .map(e => e.relation)
+          .slice(0, 3);
+
+        tooltip.innerHTML = `
+          <div class="graph-tooltip-name">${d.name}</div>
+          <div class="graph-tooltip-type">${d.type.replace(/_/g, ' ')}</div>
+          ${relations.length ? `<div class="graph-tooltip-rel">${relations.join(', ')}</div>` : ''}
+        `;
+        tooltip.classList.add('visible');
+      })
+      .on('mousemove', (event) => {
+        const rect = container.getBoundingClientRect();
+        const x = event.clientX - rect.left + 12;
+        const y = event.clientY - rect.top - 10;
+        tooltip.style.left = '8px';
+        tooltip.style.top = (document.getElementById('graphLegend').offsetHeight + 68) + 'px';
+      })
+      .on('mouseleave', () => {
+        link.attr('opacity', 0.6).attr('stroke-width', 1.5);
+        edgeLabel.attr('opacity', 0);
+        node.attr('opacity', 1);
+        tooltip.classList.remove('visible');
+      });
+
+    // Simulation tick
+    graphSimulation.on('tick', () => {
+      link
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
+
+      edgeLabel
+        .attr('x', d => (d.source.x + d.target.x) / 2)
+        .attr('y', d => (d.source.y + d.target.y) / 2);
+
+      node.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+
+    // Initial zoom to fit after simulation settles
+    setTimeout(() => {
+        try {
+          // Get bounding box of just connected nodes
+          const connectedEls = [];
+          g.selectAll('g').each(function(d) {
+            if (connectedNodeIds.has(d.id)) connectedEls.push(d);
+          });
+
+          if (connectedEls.length > 0) {
+            const xs = connectedEls.map(d => d.x).filter(Boolean);
+            const ys = connectedEls.map(d => d.y).filter(Boolean);
+            if (xs.length && ys.length) {
+              const minX = Math.min(...xs) - 40;
+              const maxX = Math.max(...xs) + 40;
+              const minY = Math.min(...ys) - 40;
+              const maxY = Math.max(...ys) + 40;
+              const bWidth = maxX - minX;
+              const bHeight = maxY - minY;
+              const scale = Math.min(1.8 * width / bWidth, 1.8 * height / bHeight, 3);
+              const tx = (width - scale * (minX + maxX)) / 2;
+              const ty = (height - scale * (minY + maxY)) / 2;
+              svg.transition().duration(1000).call(
+                zoom.transform,
+                d3.zoomIdentity.translate(tx, ty).scale(scale)
+              );
+            }
+          }
+        } catch(e) {}
+    }, 2500);
+   }
 
   function renderMessage(msg) {
     const el = document.createElement('div');
     el.className = 'agent-card';
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
     const influenced = (msg.influenced_by && msg.influenced_by !== 'null' && msg.influenced_by !== null) ? `<div class="agent-influenced">influenced by ${msg.influenced_by}</div>` : '';    el.innerHTML = `
       <div class="agent-top">
         <div class="agent-identity">
@@ -2081,6 +2458,9 @@
     `;
     document.getElementById('agentFeed').appendChild(el);
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => {
+      gsap.to(el, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
+    }, 50);
   }
 
   function renderReport(report, personas) {
@@ -2551,6 +2931,129 @@
   function hideEmberTyping() {
     document.getElementById('emberTyping')?.remove();
   }
+
+  // ── GSAP + PARTICLES ──
+  gsap.registerPlugin(ScrollTrigger);
+
+  function initParticles() {
+    const canvas = document.getElementById('heroCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = Array.from({length: 80}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 2 + 0.5,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      opacity: Math.random() * 0.6 + 0.2
+    }));
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(232,132,90,${p.opacity})`;
+        ctx.fill();
+      });
+      particles.forEach((p, i) => {
+        particles.slice(i + 1).forEach(p2 => {
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(232,132,90,${0.15 * (1 - dist/120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        });
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  initParticles();
+
+  function animateSignal() {
+    const signalEl = document.querySelector('.signal-value');
+    if (!signalEl) return;
+    gsap.fromTo(signalEl,
+      { scale: 0.5, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(1.7)' }
+    );
+  }
+
+  function animateTickerBar() {
+    gsap.fromTo('.ticker-bar',
+      { y: -20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
+    );
+  }
+
+  function animateStatsBar() {
+    const items = document.querySelectorAll('.stats-bar .stat-item');
+    if (items.length === 0) return;
+    gsap.fromTo(items,
+      { y: -10, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, stagger: 0.04, ease: 'power2.out' }
+    );
+  }
+
+  function initScrollAnimations() {
+    ScrollTrigger.getAll().forEach(t => t.kill());
+
+    // Reveal knowledge graph panel
+    gsap.fromTo('#graphPanel',
+      { opacity: 0, x: -30 },
+      {
+        opacity: 1, x: 0, duration: 0.6, ease: 'power2.out',
+        scrollTrigger: { trigger: '#graphPanel', start: 'top 85%' }
+      }
+    );
+
+    // Reveal report panel
+    gsap.fromTo('#reportPanel',
+      { opacity: 0, x: 30 },
+      {
+        opacity: 1, x: 0, duration: 0.6, ease: 'power2.out',
+        scrollTrigger: { trigger: '#reportPanel', start: 'top 85%' }
+      }
+    );
+
+    // Reveal sentiment bars one by one
+    gsap.fromTo('.bar-item',
+      { opacity: 0, scaleX: 0 },
+      {
+        opacity: 1, scaleX: 1, duration: 0.5, stagger: 0.1, ease: 'power2.out',
+        transformOrigin: 'left center',
+        scrollTrigger: { trigger: '#reportPanel', start: 'top 80%' }
+      }
+    );
+
+    // Participant cards
+    gsap.fromTo('.participant-card',
+      { opacity: 0, y: 10 },
+      {
+        opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out',
+        scrollTrigger: { trigger: '.participant-card', start: 'top 90%' }
+      }
+    );
+  }
+
 </script>
 
 <!-- WATCHLIST OVERLAY -->
