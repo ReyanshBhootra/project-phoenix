@@ -2,7 +2,7 @@
 
 > Before you trade, simulate the reaction.
 
-Live: https://project-phoenix.up.railway.app
+Live: [https://project-phoenix-znm3.onrender.com/](https://project-phoenix-znm3.onrender.com/)
 
 ---
 
